@@ -38,6 +38,18 @@ export function TemplateCustomizer() {
 
   return (
     <>
+      {/* Floating Toggle Button */}
+      <button
+        onClick={() => setCustomizerOpen(true)}
+        className={cn(
+          "fixed right-0 top-1/2 -translate-y-1/2 z-[55] w-12 h-12 bg-primary text-primary-foreground rounded-l-lg shadow-lg flex items-center justify-center transition-all hover:w-14",
+          customizerOpen && "opacity-0 pointer-events-none"
+        )}
+        title="Template Customizer"
+      >
+        <Settings className="h-5 w-5 animate-spin-slow" />
+      </button>
+
       {/* Overlay */}
       <div
         className={cn(
