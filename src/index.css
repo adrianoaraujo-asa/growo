@@ -166,6 +166,130 @@
   }
 }
 
+/* Utility classes for enhanced UI */
+@layer components {
+  /* Cards with hover effects */
+  .card-elevated {
+    @apply bg-card rounded-lg border border-border shadow-card transition-all duration-300;
+  }
+  
+  .card-elevated:hover {
+    @apply shadow-card-hover -translate-y-0.5;
+  }
+  
+  .card-float {
+    @apply bg-card rounded-lg border border-border shadow-float;
+  }
+  
+  /* Buttons with enhanced shadows */
+  .btn-float {
+    @apply transition-all duration-250;
+  }
+  
+  .btn-float:hover {
+    @apply -translate-y-0.5 shadow-btn-primary-hover;
+  }
+  
+  .btn-float:active {
+    @apply translate-y-0 shadow-btn-primary;
+  }
+  
+  /* Interactive list items */
+  .list-item-hover {
+    @apply transition-all duration-200 rounded-md;
+  }
+  
+  .list-item-hover:hover {
+    @apply bg-muted/50 translate-x-1;
+  }
+  
+  /* Avatar with glow effect */
+  .avatar-glow {
+    @apply ring-2 ring-primary/20 ring-offset-2 ring-offset-card;
+  }
+  
+  .avatar-glow:hover {
+    @apply ring-primary/40;
+  }
+  
+  /* Badge floating animation */
+  .badge-float {
+    @apply animate-pulse-soft;
+  }
+  
+  /* Icon hover effects */
+  .icon-hover {
+    @apply transition-all duration-200;
+  }
+  
+  .icon-hover:hover {
+    @apply scale-110 text-primary;
+  }
+  
+  /* Dropdown enhanced */
+  .dropdown-enhanced {
+    @apply bg-popover border border-border rounded-lg shadow-dropdown animate-fade-in;
+  }
+  
+  .dark .dropdown-enhanced {
+    @apply shadow-dropdown-dark;
+  }
+  
+  /* Input focus effects */
+  .input-float {
+    @apply transition-all duration-200;
+  }
+  
+  .input-float:focus {
+    @apply shadow-btn-primary ring-2 ring-primary/20;
+  }
+  
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors duration-150;
+  }
+  
+  .table-row-hover:hover {
+    @apply bg-muted/40;
+  }
+  
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.5) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+  
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-card/80 backdrop-blur-md border border-border/50;
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-info bg-clip-text text-transparent;
+  }
+  
+  /* Subtle border glow */
+  .border-glow {
+    @apply border border-primary/30 shadow-[0_0_15px_rgba(105,108,255,0.15)];
+  }
+  
+  /* Floating action button */
+  .fab {
+    @apply shadow-float transition-all duration-300;
+  }
+  
+  .fab:hover {
+    @apply shadow-float-lg -translate-y-1;
+  }
+}
+
 /* Auth page styles */
 @layer components {
   .auth-wrapper {
@@ -202,7 +326,11 @@
   }
   
   .social-btn {
-    @apply w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80;
+    @apply w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200;
+  }
+  
+  .social-btn:hover {
+    @apply -translate-y-0.5 shadow-float;
   }
   
   .social-btn-facebook {
