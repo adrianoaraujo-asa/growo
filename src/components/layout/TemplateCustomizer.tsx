@@ -42,7 +42,9 @@ export function TemplateCustomizer() {
       <button
         onClick={() => setCustomizerOpen(true)}
         className={cn(
-          "fixed right-0 top-[200px] z-[55] w-12 h-12 bg-primary text-primary-foreground rounded-l-lg shadow-lg flex items-center justify-center transition-all hover:w-14",
+          "fixed right-0 top-[200px] z-[55] w-12 h-12 bg-primary text-primary-foreground rounded-l-xl fab flex items-center justify-center",
+          "hover:w-14 hover:shadow-float-lg hover:-translate-y-1",
+          "transition-all duration-300 ease-smooth",
           customizerOpen && "opacity-0 pointer-events-none"
         )}
         title="Template Customizer"
@@ -53,7 +55,7 @@ export function TemplateCustomizer() {
       {/* Overlay */}
       <div
         className={cn(
-          "fixed inset-0 bg-black/50 z-[60] transition-opacity",
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] transition-all duration-300",
           customizerOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setCustomizerOpen(false)}
