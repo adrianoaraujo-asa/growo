@@ -10,6 +10,7 @@ import { DashboardLayout } from "@/components/layout";
 
 import NotFound from "./pages/NotFound";
 import DashboardPage from "./pages/dashboard/DashboardPage";
+import { OrganizationsPage } from "./pages/organizations";
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
@@ -39,7 +40,7 @@ const App = () => (
             >
               <Route path="/" element={<DashboardPage />} />
               <Route path="/analytics" element={<DashboardPage />} />
-              <Route path="/organizations" element={<PlaceholderPage title="Organizações" />} />
+              <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/users" element={<PlaceholderPage title="Usuários" />} />
               <Route path="/professionals" element={<PlaceholderPage title="Profissionais" />} />
               <Route path="/clients" element={<PlaceholderPage title="Clientes" />} />
