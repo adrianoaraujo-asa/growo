@@ -125,7 +125,7 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox id="remember" {...register("rememberMe")} />
+            <Checkbox id="remember" />
             <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
               Lembrar de mim
             </Label>
