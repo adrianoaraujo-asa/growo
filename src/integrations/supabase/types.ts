@@ -515,6 +515,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -542,7 +566,13 @@ export type Database = {
         | "home"
         | "work"
         | "other"
-      app_role: "owner" | "admin" | "manager" | "member" | "viewer"
+      app_role:
+        | "superadmin"
+        | "owner"
+        | "admin"
+        | "manager"
+        | "member"
+        | "viewer"
       avatar_type: "user" | "organization" | "customer" | "professional"
       contact_type:
         | "email"
@@ -691,7 +721,7 @@ export const Constants = {
         "work",
         "other",
       ],
-      app_role: ["owner", "admin", "manager", "member", "viewer"],
+      app_role: ["superadmin", "owner", "admin", "manager", "member", "viewer"],
       avatar_type: ["user", "organization", "customer", "professional"],
       contact_type: [
         "email",
