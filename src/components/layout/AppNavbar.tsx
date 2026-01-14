@@ -31,7 +31,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 export function AppNavbar() {
   const { user, signOut } = useAuthContext();
-  const { navbarType, toggleSidebar, toggleCustomizer } = useLayoutStore();
+  const { navbarType, toggleSidebar } = useLayoutStore();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -143,10 +143,6 @@ export function AppNavbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Settings (Customizer) */}
-        <Button variant="ghost" size="icon" onClick={toggleCustomizer}>
-          <Settings className="h-5 w-5" />
-        </Button>
 
         {/* User Menu */}
         <DropdownMenu>
