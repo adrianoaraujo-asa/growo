@@ -12,6 +12,7 @@ import { AddOrganizationSheet } from "./AddOrganizationSheet";
 import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { StaggerContainer, StaggerItem } from "@/components/animations/MotionWrapper";
 
 const statusMap: Record<string, { label: string; variant: "primary" | "success" | "danger" | "warning" | "info" | "secondary" }> = {
   active: { label: "Ativo", variant: "success" },
@@ -149,29 +150,33 @@ export function OrganizationsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-heading">Organizações</h1>
-        <p className="text-muted-foreground mt-1">
-          Gerencie as organizações cadastradas no sistema
-        </p>
-      </div>
+    <StaggerContainer className="space-y-6">
+      <StaggerItem>
+        <div>
+          <h1 className="text-2xl font-semibold text-heading">Organizações</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie as organizações cadastradas no sistema
+          </p>
+        </div>
+      </StaggerItem>
 
-      <DataTable
-        columns={columns}
-        data={organizations}
-        title="Lista de Organizações"
-        searchPlaceholder="Buscar organização..."
-        onAdd={handleAdd}
-        addButtonText="Nova Organização"
-        isLoading={isLoading}
-      />
+      <StaggerItem>
+        <DataTable
+          columns={columns}
+          data={organizations}
+          title="Lista de Organizações"
+          searchPlaceholder="Buscar organização..."
+          onAdd={handleAdd}
+          addButtonText="Nova Organização"
+          isLoading={isLoading}
+        />
+      </StaggerItem>
 
       <AddOrganizationSheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         organization={editingOrg}
       />
-    </div>
+    </StaggerContainer>
   );
 }
