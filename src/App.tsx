@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PublicRoute } from "@/components/auth/PublicRoute";
@@ -30,6 +30,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
             {/* Protected Routes with Dashboard Layout */}
             <Route
               element={
@@ -38,23 +41,100 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/analytics" element={<DashboardPage />} />
+              {/* =====================================
+                  DASHBOARDS
+              ===================================== */}
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/analytics" element={<PlaceholderPage title="Analytics" />} />
+
+              {/* =====================================
+                  DOCUMENTOS (WIKI)
+              ===================================== */}
+              <Route path="/docs" element={<PlaceholderPage title="Documentos" description="Sistema de documentação colaborativa estilo Notion." />} />
+              <Route path="/docs/:id" element={<PlaceholderPage title="Editor de Documento" />} />
+              <Route path="/docs/:id/history" element={<PlaceholderPage title="Histórico de Versões" />} />
+
+              {/* =====================================
+                  MÓDULOS DO SAAS (growo.app)
+              ===================================== */}
               <Route path="/organizations" element={<OrganizationsPage />} />
-              <Route path="/users" element={<PlaceholderPage title="Usuários" />} />
+              <Route path="/organizations/new" element={<PlaceholderPage title="Nova Organização" />} />
               <Route path="/professionals" element={<PlaceholderPage title="Profissionais" />} />
+              <Route path="/professionals/skills" element={<PlaceholderPage title="Skills" />} />
               <Route path="/clients" element={<PlaceholderPage title="Clientes" />} />
               <Route path="/projects" element={<PlaceholderPage title="Projetos" />} />
-              <Route path="/timesheet" element={<PlaceholderPage title="Timesheet" />} />
+              <Route path="/projects/kanban" element={<PlaceholderPage title="Kanban" />} />
+              <Route path="/timesheet" element={<PlaceholderPage title="Lançamentos" />} />
+              <Route path="/timesheet/calendar" element={<PlaceholderPage title="Calendário de Timesheet" />} />
+              <Route path="/timesheet/reports" element={<PlaceholderPage title="Relatórios de Timesheet" />} />
               <Route path="/calendar" element={<PlaceholderPage title="Calendário" />} />
-              <Route path="/invoices" element={<PlaceholderPage title="Faturas" />} />
-              <Route path="/billing" element={<PlaceholderPage title="Cobrança" />} />
-              <Route path="/settings/*" element={<PlaceholderPage title="Configurações" />} />
-              <Route path="/docs" element={<PlaceholderPage title="Documentação" />} />
-              <Route path="/support" element={<PlaceholderPage title="Suporte" />} />
+
+              {/* =====================================
+                  CONFIGURAÇÕES DA ORGANIZAÇÃO
+              ===================================== */}
+              <Route path="/settings/organization" element={<PlaceholderPage title="Dados da Empresa" description="Gerencie informações da sua organização." />} />
+              <Route path="/settings/addresses" element={<PlaceholderPage title="Endereços" description="Gerencie os endereços da organização." />} />
+              <Route path="/settings/contacts" element={<PlaceholderPage title="Contatos" description="Gerencie os contatos da organização." />} />
+              <Route path="/settings/billing" element={<PlaceholderPage title="Métodos de Pagamento" description="Gerencie seus cartões e métodos de pagamento." />} />
+              <Route path="/settings/subscription" element={<PlaceholderPage title="Assinatura" description="Visualize e gerencie seu plano atual." />} />
+              <Route path="/settings/invoices" element={<PlaceholderPage title="Faturas" description="Histórico de faturas e downloads." />} />
+              <Route path="/settings/users" element={<PlaceholderPage title="Usuários" description="Gerencie os membros da sua organização." />} />
+              <Route path="/settings/users/invite" element={<PlaceholderPage title="Convidar Usuário" />} />
+              <Route path="/settings/users/:id" element={<PlaceholderPage title="Detalhes do Usuário" />} />
+              <Route path="/settings/webhooks" element={<PlaceholderPage title="Webhooks" description="Configure endpoints para receber eventos." />} />
+              <Route path="/settings/api-keys" element={<PlaceholderPage title="API Keys" description="Gerencie suas chaves de API." />} />
+              <Route path="/settings/preferences" element={<PlaceholderPage title="Preferências" description="Configurações de localização e aparência." />} />
+
+              {/* =====================================
+                  PERFIL DO USUÁRIO
+              ===================================== */}
+              <Route path="/profile" element={<PlaceholderPage title="Meu Perfil" description="Gerencie suas informações pessoais." />} />
+              <Route path="/profile/security" element={<PlaceholderPage title="Segurança" description="Alterar senha e configurar MFA." />} />
+              <Route path="/profile/sessions" element={<PlaceholderPage title="Sessões Ativas" description="Visualize e encerre sessões." />} />
+              <Route path="/profile/notifications" element={<PlaceholderPage title="Preferências de Notificação" description="Configure como deseja receber notificações." />} />
+
+              {/* =====================================
+                  NOTIFICAÇÕES
+              ===================================== */}
+              <Route path="/notifications" element={<PlaceholderPage title="Notificações" description="Central de notificações." />} />
+
+              {/* =====================================
+                  AJUDA E SUPORTE
+              ===================================== */}
+              <Route path="/help" element={<PlaceholderPage title="Central de Ajuda" description="Encontre respostas para suas dúvidas." />} />
+              <Route path="/help/contact" element={<PlaceholderPage title="Suporte" description="Entre em contato com nossa equipe." />} />
+
+              {/* =====================================
+                  ÁREA ADMINISTRATIVA (Super Admin)
+              ===================================== */}
+              <Route path="/admin" element={<PlaceholderPage title="Dashboard Admin" description="Visão geral do sistema." />} />
+              <Route path="/admin/organizations" element={<PlaceholderPage title="Organizações (Admin)" />} />
+              <Route path="/admin/users" element={<PlaceholderPage title="Usuários (Admin)" />} />
+              <Route path="/admin/plans" element={<PlaceholderPage title="Planos" />} />
+              <Route path="/admin/features" element={<PlaceholderPage title="Features" />} />
+              <Route path="/admin/logs" element={<PlaceholderPage title="Logs do Sistema" />} />
             </Route>
 
-            {/* Public Auth Routes - redirect to home if authenticated */}
+            {/* =====================================
+                ONBOARDING PÓS-CONVITE
+            ===================================== */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/onboarding/profile" element={<PlaceholderPage title="Completar Perfil" description="Step 1 de 5" />} />
+              <Route path="/onboarding/avatar" element={<PlaceholderPage title="Upload Avatar" description="Step 2 de 5" />} />
+              <Route path="/onboarding/address" element={<PlaceholderPage title="Endereço" description="Step 3 de 5 (opcional)" />} />
+              <Route path="/onboarding/contacts" element={<PlaceholderPage title="Contatos" description="Step 4 de 5" />} />
+              <Route path="/onboarding/documents" element={<PlaceholderPage title="Documentos" description="Step 5 de 5 (opcional)" />} />
+            </Route>
+
+            {/* =====================================
+                ÁREA PÚBLICA - AUTH
+            ===================================== */}
             <Route
               path="/auth/login"
               element={
@@ -85,6 +165,19 @@ const App = () => (
             <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
             <Route path="/auth/two-steps" element={<TwoStepsPage />} />
 
+            {/* =====================================
+                SIGNUP FLOW (6 Steps)
+            ===================================== */}
+            <Route path="/signup" element={<Navigate to="/auth/register" replace />} />
+            <Route path="/signup/verify" element={<PlaceholderPage title="Verificar Email" description="Step 2 de 6" />} />
+            <Route path="/signup/profile" element={<PlaceholderPage title="Dados Pessoais" description="Step 3 de 6" />} />
+            <Route path="/signup/organization" element={<PlaceholderPage title="Dados da Empresa" description="Step 4 de 6" />} />
+            <Route path="/signup/plan" element={<PlaceholderPage title="Escolher Plano" description="Step 5 de 6" />} />
+            <Route path="/signup/checkout" element={<PlaceholderPage title="Checkout" description="Step 6 de 6" />} />
+
+            {/* Invite acceptance */}
+            <Route path="/invite/:token" element={<PlaceholderPage title="Aceitar Convite" />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -95,12 +188,13 @@ const App = () => (
 );
 
 // Placeholder page component for routes not yet implemented
-function PlaceholderPage({ title }: { title: string }) {
+function PlaceholderPage({ title, description }: { title: string; description?: string }) {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-heading">{title}</h1>
-        <p className="text-muted-foreground">Esta página está em desenvolvimento.</p>
+        {description && <p className="text-muted-foreground">{description}</p>}
+        {!description && <p className="text-muted-foreground">Esta página está em desenvolvimento.</p>}
       </div>
       <div className="bg-card border rounded-lg p-12 text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">

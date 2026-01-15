@@ -1,24 +1,35 @@
 import {
   LayoutDashboard,
-  Users,
-  Building2,
-  FolderKanban,
-  Clock,
   FileText,
   Settings,
-  Shield,
+  Building2,
+  MapPin,
+  Phone,
   CreditCard,
+  Receipt,
+  Users,
+  Webhook,
+  Key,
+  Sliders,
+  User,
+  Shield,
   Bell,
+  MonitorSmartphone,
   HelpCircle,
-  UserCog,
-  Briefcase,
+  MessageSquare,
+  FolderKanban,
+  Clock,
   CalendarDays,
   BarChart3,
-  Receipt,
+  Briefcase,
+  UserCog,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
 export const menuConfig: MenuSection[] = [
+  // =====================================
+  // DASHBOARDS
+  // =====================================
   {
     id: 'dashboards',
     title: 'Dashboards',
@@ -27,9 +38,7 @@ export const menuConfig: MenuSection[] = [
         id: 'dashboard',
         title: 'Dashboard',
         icon: LayoutDashboard,
-        path: '/',
-        badge: 'Novo',
-        badgeColor: 'primary',
+        path: '/dashboard',
       },
       {
         id: 'analytics',
@@ -39,9 +48,32 @@ export const menuConfig: MenuSection[] = [
       },
     ],
   },
+  
+  // =====================================
+  // DOCUMENTOS (WIKI) - Novo módulo core
+  // =====================================
+  {
+    id: 'docs',
+    title: 'Documentos',
+    items: [
+      {
+        id: 'documents',
+        title: 'Documentos',
+        icon: FileText,
+        path: '/docs',
+        badge: 'Novo',
+        badgeColor: 'primary',
+      },
+    ],
+  },
+
+  // =====================================
+  // MÓDULOS DO SAAS (Slot para cada vertical)
+  // Estes itens são específicos do growo.app
+  // =====================================
   {
     id: 'apps',
-    title: 'Apps & Páginas',
+    title: 'Módulos',
     items: [
       {
         id: 'organizations',
@@ -50,15 +82,6 @@ export const menuConfig: MenuSection[] = [
         children: [
           { id: 'org-list', title: 'Lista', path: '/organizations' },
           { id: 'org-new', title: 'Nova Organização', path: '/organizations/new' },
-        ],
-      },
-      {
-        id: 'users',
-        title: 'Usuários',
-        icon: Users,
-        children: [
-          { id: 'users-list', title: 'Lista', path: '/users' },
-          { id: 'users-roles', title: 'Permissões', path: '/users/roles' },
         ],
       },
       {
@@ -103,66 +126,158 @@ export const menuConfig: MenuSection[] = [
       },
     ],
   },
-  {
-    id: 'billing',
-    title: 'Financeiro',
-    items: [
-      {
-        id: 'invoices',
-        title: 'Faturas',
-        icon: Receipt,
-        children: [
-          { id: 'inv-list', title: 'Lista', path: '/invoices' },
-          { id: 'inv-new', title: 'Nova Fatura', path: '/invoices/new' },
-        ],
-      },
-      {
-        id: 'billing',
-        title: 'Cobrança',
-        icon: CreditCard,
-        path: '/billing',
-      },
-    ],
-  },
+
+  // =====================================
+  // CONFIGURAÇÕES DA ORGANIZAÇÃO
+  // =====================================
   {
     id: 'settings',
     title: 'Configurações',
     items: [
       {
-        id: 'account',
-        title: 'Minha Conta',
-        icon: Settings,
-        path: '/settings/account',
+        id: 'org-settings',
+        title: 'Organização',
+        icon: Building2,
+        children: [
+          { id: 'org-data', title: 'Dados da Empresa', path: '/settings/organization' },
+          { id: 'org-addresses', title: 'Endereços', path: '/settings/addresses' },
+          { id: 'org-contacts', title: 'Contatos', path: '/settings/contacts' },
+        ],
+      },
+      {
+        id: 'billing-settings',
+        title: 'Financeiro',
+        icon: CreditCard,
+        children: [
+          { id: 'billing-methods', title: 'Métodos de Pagamento', path: '/settings/billing' },
+          { id: 'billing-subscription', title: 'Assinatura', path: '/settings/subscription' },
+          { id: 'billing-invoices', title: 'Faturas', path: '/settings/invoices' },
+        ],
+      },
+      {
+        id: 'team-settings',
+        title: 'Equipe',
+        icon: Users,
+        children: [
+          { id: 'team-users', title: 'Usuários', path: '/settings/users' },
+          { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite' },
+        ],
+      },
+      {
+        id: 'integrations',
+        title: 'Integrações',
+        icon: Webhook,
+        children: [
+          { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks' },
+          { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys' },
+        ],
+      },
+      {
+        id: 'preferences',
+        title: 'Preferências',
+        icon: Sliders,
+        path: '/settings/preferences',
+      },
+    ],
+  },
+
+  // =====================================
+  // PERFIL DO USUÁRIO
+  // =====================================
+  {
+    id: 'profile',
+    title: 'Minha Conta',
+    items: [
+      {
+        id: 'my-profile',
+        title: 'Meu Perfil',
+        icon: User,
+        path: '/profile',
       },
       {
         id: 'security',
         title: 'Segurança',
         icon: Shield,
-        path: '/settings/security',
+        children: [
+          { id: 'sec-password', title: 'Alterar Senha', path: '/profile/security' },
+          { id: 'sec-sessions', title: 'Sessões Ativas', path: '/profile/sessions' },
+        ],
       },
       {
         id: 'notifications',
         title: 'Notificações',
         icon: Bell,
-        path: '/settings/notifications',
+        path: '/profile/notifications',
       },
     ],
   },
+
+  // =====================================
+  // AJUDA E SUPORTE
+  // =====================================
   {
-    id: 'misc',
-    title: 'Outros',
+    id: 'help',
+    title: 'Ajuda',
     items: [
       {
-        id: 'docs',
-        title: 'Documentação',
-        icon: FileText,
-        path: '/docs',
+        id: 'help-center',
+        title: 'Central de Ajuda',
+        icon: HelpCircle,
+        path: '/help',
       },
       {
         id: 'support',
         title: 'Suporte',
-        icon: HelpCircle,
-        path: '/support',
+        icon: MessageSquare,
+        path: '/help/contact',
+      },
+    ],
+  },
+];
+
+// =====================================
+// MENU ADMINISTRATIVO (Super Admin)
+// =====================================
+export const adminMenuConfig: MenuSection[] = [
+  {
+    id: 'admin',
+    title: 'Administração',
+    items: [
+      {
+        id: 'admin-dashboard',
+        title: 'Dashboard Admin',
+        icon: LayoutDashboard,
+        path: '/admin',
+      },
+      {
+        id: 'admin-orgs',
+        title: 'Organizações',
+        icon: Building2,
+        path: '/admin/organizations',
+      },
+      {
+        id: 'admin-users',
+        title: 'Usuários',
+        icon: Users,
+        path: '/admin/users',
+      },
+      {
+        id: 'admin-plans',
+        title: 'Planos',
+        icon: CreditCard,
+        path: '/admin/plans',
+      },
+      {
+        id: 'admin-features',
+        title: 'Features',
+        icon: Sliders,
+        path: '/admin/features',
+      },
+      {
+        id: 'admin-logs',
+        title: 'Logs',
+        icon: FileText,
+        path: '/admin/logs',
       },
     ],
   },
