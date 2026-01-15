@@ -4,6 +4,52 @@ import { menuConfig } from '@/config/menuConfig';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import { Menu, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const sidebarVariants = {
+  expanded: { 
+    width: 260,
+    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+  },
+  collapsed: { 
+    width: 70,
+    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+  }
+};
+
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+};
+
+const logoTextVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.2, delay: 0.1 }
+  }
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      staggerChildren: 0.05,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const footerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.3, delay: 0.2 }
+  }
+};
 
 export function AppSidebar() {
   const { 
@@ -18,25 +64,29 @@ export function AppSidebar() {
   return (
     <>
       {/* Mobile Overlay */}
-      <div
-        className={cn(
-          "fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity",
-          !sidebarCollapsed ? "opacity-100" : "opacity-0 pointer-events-none"
+      <AnimatePresence>
+        {!sidebarCollapsed && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={overlayVariants}
+            onClick={() => setSidebarCollapsed(true)}
+          />
         )}
-        onClick={() => setSidebarCollapsed(true)}
-      />
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
+      <motion.aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full sidebar-float transition-all duration-300 flex flex-col",
-          // Desktop
+          "fixed left-0 top-0 z-50 h-full sidebar-float flex flex-col",
           "lg:relative lg:z-auto",
-          isCollapsed ? "w-[70px]" : "w-[260px]",
-          // Mobile - slide in/out
-          "max-lg:translate-x-0",
           sidebarCollapsed && "max-lg:-translate-x-full"
         )}
+        initial={false}
+        animate={isCollapsed ? "collapsed" : "expanded"}
+        variants={sidebarVariants}
         onMouseEnter={() => sidebarCollapsed && setSidebarHover(true)}
         onMouseLeave={() => setSidebarHover(false)}
       >
@@ -45,59 +95,122 @@ export function AppSidebar() {
           "h-16 flex items-center border-b border-border/40 px-4 shrink-0",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/30 group-hover:scale-105">
-              <span className="text-primary-foreground font-bold text-lg">G</span>
-            </div>
-            {!isCollapsed && (
-              <span className="font-semibold text-lg text-heading transition-colors group-hover:text-primary">Growo</span>
-            )}
-          </div>
-          
-          {!isCollapsed && (
-            <button
-              onClick={() => setSidebarCollapsed(true)}
-              className="lg:hidden p-1 hover:bg-accent rounded"
+          <motion.div 
+            className="flex items-center gap-3 group cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <motion.div 
+              className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20"
+              whileHover={{ 
+                scale: 1.1, 
+                rotate: 5,
+                boxShadow: '0 10px 30px -10px hsl(var(--primary) / 0.4)'
+              }}
+              transition={{ duration: 0.2 }}
             >
-              <X className="h-5 w-5 text-muted-foreground" />
-            </button>
-          )}
+              <span className="text-primary-foreground font-bold text-lg">G</span>
+            </motion.div>
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.span 
+                  className="font-semibold text-lg text-heading group-hover:text-primary transition-colors"
+                  variants={logoTextVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                >
+                  Growo
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.div>
+          
+          <AnimatePresence>
+            {!isCollapsed && (
+              <motion.button
+                onClick={() => setSidebarCollapsed(true)}
+                className="lg:hidden p-1 hover:bg-accent rounded"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="h-5 w-5 text-muted-foreground" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Menu */}
         <ScrollArea className="flex-1 py-4 scrollbar-thin">
           <nav className="px-3 space-y-6">
-            {menuConfig.map((section) => (
-              <div key={section.id}>
-                {!isCollapsed && (
-                  <h4 className="px-4 mb-3 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-                    {section.title}
-                  </h4>
-                )}
+            {menuConfig.map((section, sectionIndex) => (
+              <motion.div 
+                key={section.id}
+                variants={sectionVariants}
+                initial="hidden"
+                animate="visible"
+                custom={sectionIndex}
+              >
+                <AnimatePresence mode="wait">
+                  {!isCollapsed && (
+                    <motion.h4 
+                      className="px-4 mb-3 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {section.title}
+                    </motion.h4>
+                  )}
+                </AnimatePresence>
                 {isCollapsed && (
-                  <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mx-2 my-3" />
+                  <motion.div 
+                    className="h-px bg-gradient-to-r from-transparent via-border to-transparent mx-2 my-3"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
                 )}
                 <div className="space-y-1">
                   {section.items.map((item) => (
                     <SidebarMenuItem key={item.id} item={item} />
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </nav>
         </ScrollArea>
 
         {/* Footer */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-border/40 shrink-0">
-            <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-xl p-3 text-center backdrop-blur-sm border border-primary/10">
-              <p className="text-xs text-muted-foreground font-medium">
-                Growo v1.0.0
-              </p>
-            </div>
-          </div>
-        )}
-      </aside>
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.div 
+              className="p-4 border-t border-border/40 shrink-0"
+              variants={footerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <motion.div 
+                className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-xl p-3 text-center backdrop-blur-sm border border-primary/10"
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: '0 4px 20px -4px hsl(var(--primary) / 0.2)'
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <p className="text-xs text-muted-foreground font-medium">
+                  Growo v1.0.0
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.aside>
     </>
   );
 }
