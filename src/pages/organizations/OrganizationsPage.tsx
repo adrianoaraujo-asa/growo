@@ -13,6 +13,7 @@ import { useOrganizations, Organization } from "@/hooks/useOrganizations";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { StaggerContainer, StaggerItem } from "@/components/animations/MotionWrapper";
+import { DataTableSkeleton } from "@/components/skeletons";
 
 const statusMap: Record<string, { label: string; variant: "primary" | "success" | "danger" | "warning" | "info" | "secondary" }> = {
   active: { label: "Ativo", variant: "success" },
@@ -161,15 +162,24 @@ export function OrganizationsPage() {
       </StaggerItem>
 
       <StaggerItem>
-        <DataTable
-          columns={columns}
-          data={organizations}
-          title="Lista de Organizações"
-          searchPlaceholder="Buscar organização..."
-          onAdd={handleAdd}
-          addButtonText="Nova Organização"
-          isLoading={isLoading}
-        />
+        {isLoading ? (
+          <DataTableSkeleton 
+            columns={7} 
+            rows={5} 
+            showToolbar={true} 
+            showPagination={true} 
+          />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={organizations}
+            title="Lista de Organizações"
+            searchPlaceholder="Buscar organização..."
+            onAdd={handleAdd}
+            addButtonText="Nova Organização"
+            isLoading={false}
+          />
+        )}
       </StaggerItem>
 
       <AddOrganizationSheet

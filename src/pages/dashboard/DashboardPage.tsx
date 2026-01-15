@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -9,6 +10,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { StaggerContainer, StaggerItem } from '@/components/animations/MotionWrapper';
+import { StatCardSkeletonGrid } from '@/components/skeletons';
 import { cn } from '@/lib/utils';
 
 const stats = [
@@ -62,6 +64,14 @@ const recentActivities = [
 ];
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading for demo purposes
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <StaggerContainer className="space-y-6">
       {/* Page Header */}
@@ -72,23 +82,27 @@ export default function DashboardPage() {
         </div>
       </StaggerItem>
 
-      {/* Stats Cards - Animated */}
+      {/* Stats Cards - Animated with Skeleton Loading */}
       <StaggerItem>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <StatCard
-              key={stat.title}
-              title={stat.title}
-              value={stat.value}
-              prefix={stat.prefix}
-              change={stat.change}
-              trend={stat.trend}
-              icon={stat.icon}
-              color={stat.color}
-              delay={index * 100}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <StatCardSkeletonGrid />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => (
+              <StatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                prefix={stat.prefix}
+                change={stat.change}
+                trend={stat.trend}
+                icon={stat.icon}
+                color={stat.color}
+                delay={index * 100}
+              />
+            ))}
+          </div>
+        )}
       </StaggerItem>
 
       {/* Main Content Row */}
