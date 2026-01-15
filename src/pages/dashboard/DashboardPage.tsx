@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { StaggerContainer, StaggerItem } from '@/components/animations/MotionWrapper';
 import { cn } from '@/lib/utils';
 
 const stats = [
@@ -62,110 +63,117 @@ const recentActivities = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <StaggerContainer className="space-y-6">
       {/* Page Header */}
-      <div className="animate-fade-in">
-        <h1 className="text-2xl font-semibold text-heading">Dashboard</h1>
-        <p className="text-muted-foreground">Bem-vindo de volta! Aqui está uma visão geral.</p>
-      </div>
+      <StaggerItem>
+        <div>
+          <h1 className="text-2xl font-semibold text-heading">Dashboard</h1>
+          <p className="text-muted-foreground">Bem-vindo de volta! Aqui está uma visão geral.</p>
+        </div>
+      </StaggerItem>
 
       {/* Stats Cards - Animated */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <StatCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            prefix={stat.prefix}
-            change={stat.change}
-            trend={stat.trend}
-            icon={stat.icon}
-            color={stat.color}
-            delay={index * 100}
-          />
-        ))}
-      </div>
+      <StaggerItem>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, index) => (
+            <StatCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              prefix={stat.prefix}
+              change={stat.change}
+              trend={stat.trend}
+              icon={stat.icon}
+              color={stat.color}
+              delay={index * 100}
+            />
+          ))}
+        </div>
+      </StaggerItem>
 
       {/* Main Content Row */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Projects */}
-        <Card className="lg:col-span-2 card-3d">
-          <CardHeader>
-            <CardTitle className="text-heading">Projetos Recentes</CardTitle>
-            <CardDescription>Últimos projetos atualizados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentProjects.map((project, index) => (
-                <div 
-                  key={index} 
-                  className="group flex items-center gap-4 p-3 -mx-3 rounded-lg transition-all duration-200 hover:bg-muted/40"
-                >
-                  <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shrink-0 shadow-md transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3">
-                    <FolderKanban className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">{project.name}</p>
-                      <span className={cn(
-                        "text-xs px-2.5 py-1 rounded-full font-medium shadow-sm transition-all duration-200 group-hover:shadow-md",
-                        project.status === 'Concluído' && "bg-success/10 text-success",
-                        project.status === 'Em andamento' && "bg-primary/10 text-primary",
-                        project.status === 'Em revisão' && "bg-warning/10 text-warning",
-                        project.status === 'Aguardando' && "bg-muted text-muted-foreground"
-                      )}>
-                        {project.status}
-                      </span>
+      <StaggerItem>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Recent Projects */}
+          <Card className="lg:col-span-2 card-3d">
+            <CardHeader>
+              <CardTitle className="text-heading">Projetos Recentes</CardTitle>
+              <CardDescription>Últimos projetos atualizados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentProjects.map((project, index) => (
+                  <div 
+                    key={index} 
+                    className="group flex items-center gap-4 p-3 -mx-3 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                  >
+                    <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shrink-0 shadow-md transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3">
+                      <FolderKanban className="h-5 w-5 text-white" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{project.client}</p>
-                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden shadow-inner">
-                      <div 
-                        className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${project.progress}%` }}
-                      />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">{project.name}</p>
+                        <span className={cn(
+                          "text-xs px-2.5 py-1 rounded-full font-medium shadow-sm transition-all duration-200 group-hover:shadow-md",
+                          project.status === 'Concluído' && "bg-success/10 text-success",
+                          project.status === 'Em andamento' && "bg-primary/10 text-primary",
+                          project.status === 'Em revisão' && "bg-warning/10 text-warning",
+                          project.status === 'Aguardando' && "bg-muted text-muted-foreground"
+                        )}>
+                          {project.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{project.client}</p>
+                      <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${project.progress}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Recent Activity */}
-        <Card className="card-3d">
-          <CardHeader>
-            <CardTitle className="text-heading">Atividades Recentes</CardTitle>
-            <CardDescription>Últimas atualizações da equipe</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div 
-                  key={index} 
-                  className="group flex items-start gap-3 p-2 -mx-2 rounded-lg transition-all duration-200 hover:bg-muted/40"
-                >
-                  <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shrink-0 mt-0.5 shadow-md transition-transform duration-200 group-hover:scale-110">
-                    <activity.icon className="h-4 w-4 text-white" />
+          {/* Recent Activity */}
+          <Card className="card-3d">
+            <CardHeader>
+              <CardTitle className="text-heading">Atividades Recentes</CardTitle>
+              <CardDescription>Últimas atualizações da equipe</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivities.map((activity, index) => (
+                  <div 
+                    key={index} 
+                    className="group flex items-start gap-3 p-2 -mx-2 rounded-lg transition-all duration-200 hover:bg-muted/40"
+                  >
+                    <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shrink-0 mt-0.5 shadow-md transition-transform duration-200 group-hover:scale-110">
+                      <activity.icon className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors">{activity.user}</span>{' '}
+                        <span className="text-muted-foreground">{activity.action}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">
-                      <span className="font-medium text-foreground group-hover:text-primary transition-colors">{activity.user}</span>{' '}
-                      <span className="text-muted-foreground">{activity.action}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </StaggerItem>
 
       {/* Quick Actions */}
-      <Card className="card-3d overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-heading">Ações Rápidas</CardTitle>
-        </CardHeader>
+      <StaggerItem>
+        <Card className="card-3d overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-heading">Ações Rápidas</CardTitle>
+          </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <button className="group relative flex items-center gap-3 p-4 rounded-xl border border-border/50 bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-300 text-left overflow-hidden hover:-translate-y-0.5">
@@ -211,6 +219,7 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </StaggerItem>
+    </StaggerContainer>
   );
 }

@@ -1,4 +1,3 @@
-import { Outlet } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { AppSidebar } from './AppSidebar';
@@ -6,6 +5,7 @@ import { AppNavbar } from './AppNavbar';
 import { AppFooter } from './AppFooter';
 import { TemplateCustomizer } from './TemplateCustomizer';
 import { useTheme } from '@/hooks/useTheme';
+import { PageTransition } from '@/components/animations/PageTransition';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -29,12 +29,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Navbar */}
         <AppNavbar />
 
-        {/* Page Content */}
+        {/* Page Content with Animation */}
         <main className={cn(
           "flex-1 p-6",
           contentWidth === 'boxed' && "max-w-7xl mx-auto w-full"
         )}>
-          {children || <Outlet />}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
 
         {/* Footer */}
