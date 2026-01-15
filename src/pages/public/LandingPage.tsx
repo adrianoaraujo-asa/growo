@@ -10,7 +10,13 @@ import {
   Clock, 
   FileText,
   ChevronDown,
-  Star
+  Star,
+  Briefcase,
+  FolderKanban,
+  UserCog,
+  CalendarDays,
+  Building2,
+  Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,88 +38,87 @@ const staggerContainer = {
   }
 };
 
-// Features data
+// Features data - Focado no growo.app
 const features = [
   {
-    icon: Users,
-    title: "Multi-Tenant",
-    description: "Gerencie múltiplas organizações com isolamento completo de dados e permissões granulares."
+    icon: UserCog,
+    title: "Gestão de Profissionais",
+    description: "Cadastre profissionais com skills, disponibilidade e histórico de alocações em projetos."
   },
   {
-    icon: FileText,
-    title: "Documentação Wiki",
-    description: "Editor Markdown colaborativo estilo Notion com histórico de versões e compartilhamento."
+    icon: Briefcase,
+    title: "Gestão de Clientes",
+    description: "Organize seus clientes com contratos, contatos e histórico de projetos realizados."
   },
   {
-    icon: Shield,
-    title: "Segurança Avançada",
-    description: "Autenticação MFA, SSO, controle de sessões e políticas de acesso por role."
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics Integrado",
-    description: "Dashboards personalizáveis com métricas em tempo real e relatórios exportáveis."
-  },
-  {
-    icon: Zap,
-    title: "API & Webhooks",
-    description: "Integre com qualquer sistema através de nossa API RESTful e webhooks configuráveis."
+    icon: FolderKanban,
+    title: "Projetos & Kanban",
+    description: "Gerencie projetos com visão Kanban, alocação de recursos e acompanhamento de entregas."
   },
   {
     icon: Clock,
-    title: "Automações",
-    description: "Fluxos de trabalho automatizados com triggers e ações personalizáveis."
+    title: "Timesheet Inteligente",
+    description: "Controle de horas trabalhadas com aprovações, relatórios e integração com faturamento."
+  },
+  {
+    icon: CalendarDays,
+    title: "Calendário Integrado",
+    description: "Visualize alocações, férias, feriados e disponibilidade da equipe em um só lugar."
+  },
+  {
+    icon: BarChart3,
+    title: "Relatórios & Analytics",
+    description: "Dashboards com métricas de produtividade, rentabilidade e utilização de recursos."
   }
 ];
 
 // Plans data
 const plans = [
   {
-    id: "free",
-    name: "Free",
-    description: "Para começar e testar",
+    id: "starter",
+    name: "Starter",
+    description: "Para pequenas equipes",
     price: { monthly: 0, yearly: 0 },
     features: [
-      "1 usuário",
-      "1 organização",
-      "100 documentos",
-      "1GB de armazenamento",
+      "Até 5 profissionais",
+      "3 projetos ativos",
+      "Timesheet básico",
+      "Relatórios essenciais",
       "Suporte por email"
     ],
     cta: "Começar Grátis",
     popular: false
   },
   {
-    id: "pro",
-    name: "Pro",
-    description: "Para equipes em crescimento",
-    price: { monthly: 49.90, yearly: 479 },
+    id: "professional",
+    name: "Professional",
+    description: "Para empresas em crescimento",
+    price: { monthly: 99, yearly: 948 },
     features: [
-      "5 usuários",
-      "3 organizações",
-      "Documentos ilimitados",
-      "10GB de armazenamento",
-      "API & Webhooks",
-      "Suporte prioritário",
-      "14 dias de trial"
+      "Até 25 profissionais",
+      "Projetos ilimitados",
+      "Timesheet avançado",
+      "Kanban & Calendar",
+      "API & Integrações",
+      "Relatórios avançados",
+      "Suporte prioritário"
     ],
-    cta: "Iniciar Trial",
+    cta: "Iniciar Trial Grátis",
     popular: true
   },
   {
     id: "enterprise",
     name: "Enterprise",
     description: "Para grandes organizações",
-    price: { monthly: 299.90, yearly: 2999 },
+    price: { monthly: 299, yearly: 2868 },
     features: [
-      "Usuários ilimitados",
-      "Organizações ilimitadas",
-      "Documentos ilimitados",
-      "100GB de armazenamento",
+      "Profissionais ilimitados",
+      "Multi-organizações",
       "SSO & SAML",
       "SLA 99.9%",
+      "Onboarding dedicado",
       "Suporte 24/7",
-      "30 dias de trial"
+      "Customizações"
     ],
     cta: "Falar com Vendas",
     popular: false
@@ -123,29 +128,38 @@ const plans = [
 // FAQ data
 const faqs = [
   {
+    question: "O que é o growo.app?",
+    answer: "O growo.app é uma plataforma completa de gestão para empresas de TI, permitindo gerenciar profissionais, clientes, projetos e controle de horas trabalhadas em um único lugar."
+  },
+  {
     question: "Como funciona o período de trial?",
-    answer: "Você tem acesso completo a todos os recursos do plano escolhido durante o período de trial. Não cobramos nada até o final do período, e você pode cancelar a qualquer momento."
+    answer: "Você tem acesso completo a todos os recursos do plano Professional por 14 dias. Não cobramos nada até o final do período, e você pode cancelar a qualquer momento."
   },
   {
-    question: "Posso mudar de plano depois?",
-    answer: "Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. O valor será calculado proporcionalmente ao período restante."
+    question: "Posso importar dados de outras ferramentas?",
+    answer: "Sim! Oferecemos importação de planilhas Excel/CSV e integrações com as principais ferramentas do mercado como Jira, Trello e Clockify."
   },
   {
-    question: "Como funciona o multi-tenant?",
-    answer: "Cada organização tem seus dados completamente isolados. Você pode pertencer a múltiplas organizações e alternar entre elas facilmente."
+    question: "Como funciona o controle de horas?",
+    answer: "O Timesheet permite lançamento manual ou automático de horas, com aprovação por gestores, relatórios detalhados e integração com faturamento."
   },
   {
     question: "Meus dados estão seguros?",
-    answer: "Utilizamos criptografia de ponta a ponta, backups automáticos e servidores com certificação SOC 2. Seus dados estão protegidos por políticas de segurança rigorosas."
+    answer: "Utilizamos criptografia de ponta a ponta, backups automáticos diários e servidores com certificação SOC 2. Seus dados estão protegidos por políticas rigorosas de segurança."
   },
   {
     question: "Vocês oferecem suporte em português?",
-    answer: "Sim! Todo nosso suporte é em português, incluindo documentação, chat e atendimento telefônico para planos Enterprise."
-  },
-  {
-    question: "Posso importar dados de outros sistemas?",
-    answer: "Oferecemos ferramentas de importação para os principais sistemas do mercado. Nossa equipe também pode auxiliar em migrações personalizadas."
+    answer: "Sim! Todo nosso suporte é em português, incluindo documentação, chat ao vivo e atendimento telefônico para planos Enterprise."
   }
+];
+
+// Clients/Logos placeholder
+const trustedBy = [
+  "Empresa 1",
+  "Empresa 2", 
+  "Empresa 3",
+  "Empresa 4",
+  "Empresa 5"
 ];
 
 export default function LandingPage() {
@@ -161,12 +175,9 @@ export default function LandingPage() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <svg viewBox="0 0 32 22" fill="none" className="w-5 h-5 text-primary-foreground">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z" fill="currentColor"/>
-                  <path fillRule="evenodd" clipRule="evenodd" d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z" fill="currentColor"/>
-                </svg>
+                <span className="text-primary-foreground font-bold text-lg">G</span>
               </div>
-              <span className="text-xl font-semibold text-heading">ASA.Template</span>
+              <span className="text-xl font-semibold text-heading">growo</span>
             </Link>
 
             {/* Navigation */}
@@ -180,6 +191,9 @@ export default function LandingPage() {
               <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 FAQ
               </a>
+              <Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Suporte
+              </Link>
             </nav>
 
             {/* CTA */}
@@ -187,7 +201,7 @@ export default function LandingPage() {
               <Link to="/auth/login">
                 <Button variant="ghost" size="sm">Entrar</Button>
               </Link>
-              <Link to="/auth/register">
+              <Link to="/signup">
                 <Button size="sm" className="btn-float">Começar Grátis</Button>
               </Link>
             </div>
@@ -207,7 +221,7 @@ export default function LandingPage() {
             <motion.div variants={fadeInUp}>
               <Badge variant="secondary" className="mb-6">
                 <Star className="w-3 h-3 mr-1 fill-warning text-warning" />
-                Template SaaS Multi-Tenant
+                Novo: Integração com Jira disponível
               </Badge>
             </motion.div>
 
@@ -215,29 +229,31 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-heading mb-6 leading-tight"
             >
-              Construa seu SaaS em{" "}
-              <span className="text-primary">tempo recorde</span>
+              Gerencie sua{" "}
+              <span className="text-primary">equipe de TI</span>
+              {" "}com eficiência
             </motion.h1>
 
             <motion.p 
               variants={fadeInUp}
               className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Template completo com autenticação, multi-tenancy, billing, documentação wiki 
-              e tudo que você precisa para lançar seu produto rapidamente.
+              Plataforma completa para gestão de profissionais, projetos e timesheet. 
+              Simplifique a alocação de recursos e maximize a produtividade da sua equipe.
             </motion.p>
 
             <motion.div 
               variants={fadeInUp}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link to="/auth/register">
+              <Link to="/signup">
                 <Button size="lg" className="btn-float text-base px-8">
                   Começar Grátis
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Button variant="outline" size="lg" className="text-base px-8">
+                <Play className="w-4 h-4 mr-2" />
                 Ver Demonstração
               </Button>
             </motion.div>
@@ -246,7 +262,7 @@ export default function LandingPage() {
               variants={fadeInUp}
               className="mt-4 text-sm text-muted-foreground"
             >
-              Sem cartão de crédito • Setup em 5 minutos • Cancele quando quiser
+              ✓ Sem cartão de crédito • ✓ 14 dias grátis • ✓ Cancele quando quiser
             </motion.p>
           </motion.div>
 
@@ -258,15 +274,41 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
           >
             <div className="card-3d p-2 max-w-5xl mx-auto">
-              <img 
-                src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/dashboards/dashboard-analytics.png"
-                alt="Dashboard Preview"
-                className="w-full rounded-lg"
-              />
+              {/* Placeholder para screenshot do dashboard */}
+              <div className="w-full aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-lg flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Building2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">Screenshot do Dashboard</p>
+                  <p className="text-sm opacity-75">Adicione a imagem do seu produto aqui</p>
+                </div>
+              </div>
             </div>
             {/* Gradient overlay */}
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
           </motion.div>
+        </div>
+      </section>
+
+      {/* Trusted By Section */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 border-y border-border/50">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-center text-sm text-muted-foreground mb-8">
+            Empresas que confiam no growo.app
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            {trustedBy.map((company, index) => (
+              <motion.div
+                key={company}
+                className="text-2xl font-semibold text-muted-foreground/50"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                {company}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -276,10 +318,10 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Recursos</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">
-              Tudo que você precisa para seu SaaS
+              Tudo que você precisa para gerenciar sua equipe
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Funcionalidades prontas para uso que economizam meses de desenvolvimento.
+              Ferramentas integradas para simplificar a gestão de projetos e profissionais de TI.
             </p>
           </div>
 
@@ -304,8 +346,58 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Como Funciona</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">
+              Comece em minutos
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Três passos simples para organizar sua operação de TI.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "01",
+                title: "Cadastre sua equipe",
+                description: "Adicione profissionais com suas skills, disponibilidade e informações de contato."
+              },
+              {
+                step: "02",
+                title: "Crie seus projetos",
+                description: "Organize projetos por cliente, aloque profissionais e defina prazos."
+              },
+              {
+                step: "03",
+                title: "Acompanhe em tempo real",
+                description: "Monitore horas trabalhadas, entregas e rentabilidade dos projetos."
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={item.step}
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+                viewport={{ once: true }}
+              >
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-primary">{item.step}</span>
+                </div>
+                <h3 className="text-xl font-semibold text-heading mb-2">{item.title}</h3>
+                <p className="text-muted-foreground">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4">Preços</Badge>
@@ -343,7 +435,7 @@ export default function LandingPage() {
                 Anual
               </span>
               {billingPeriod === "yearly" && (
-                <Badge variant="default" className="ml-2">-20%</Badge>
+                <Badge variant="default" className="ml-2">Economize 20%</Badge>
               )}
             </div>
           </div>
@@ -399,7 +491,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
 
-                <Link to="/auth/register">
+                <Link to="/signup">
                   <Button 
                     className={cn(
                       "w-full",
@@ -410,6 +502,61 @@ export default function LandingPage() {
                     {plan.cta}
                   </Button>
                 </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">Depoimentos</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">
+              O que nossos clientes dizem
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                quote: "O growo simplificou completamente nossa gestão de alocações. Antes era tudo em planilhas, agora temos controle total.",
+                author: "Nome do Cliente",
+                role: "CEO",
+                company: "Empresa Tech"
+              },
+              {
+                quote: "O timesheet integrado economizou horas do nosso RH. A aprovação de horas ficou muito mais ágil.",
+                author: "Nome do Cliente",
+                role: "CTO",
+                company: "Consultoria XYZ"
+              },
+              {
+                quote: "Finalmente conseguimos ter visibilidade real da rentabilidade de cada projeto. Ferramenta essencial.",
+                author: "Nome do Cliente",
+                role: "Diretor de Operações",
+                company: "Software House"
+              }
+            ].map((testimonial, index) => (
+              <motion.div
+                key={index}
+                className="card-3d p-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-warning text-warning" />
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-4 italic">"{testimonial.quote}"</p>
+                <div>
+                  <p className="font-semibold text-heading">{testimonial.author}</p>
+                  <p className="text-sm text-muted-foreground">{testimonial.role}, {testimonial.company}</p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -475,12 +622,12 @@ export default function LandingPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">
-              Pronto para começar?
+              Pronto para organizar sua equipe?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Crie sua conta gratuitamente e comece a construir seu SaaS hoje mesmo.
+              Comece grátis e veja como o growo pode transformar a gestão dos seus projetos de TI.
             </p>
-            <Link to="/auth/register">
+            <Link to="/signup">
               <Button size="lg" className="btn-float text-base px-8">
                 Começar Grátis
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -498,15 +645,13 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <Link to="/" className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <svg viewBox="0 0 32 22" fill="none" className="w-5 h-5 text-primary-foreground">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z" fill="currentColor"/>
-                    <path fillRule="evenodd" clipRule="evenodd" d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z" fill="currentColor"/>
-                  </svg>
+                  <span className="text-primary-foreground font-bold text-lg">G</span>
                 </div>
-                <span className="text-xl font-semibold text-heading">ASA.Template</span>
+                <span className="text-xl font-semibold text-heading">growo</span>
               </Link>
               <p className="text-muted-foreground max-w-sm">
-                Template SaaS multi-tenant completo para acelerar o desenvolvimento do seu produto.
+                Plataforma completa de gestão para empresas de TI. 
+                Profissionais, projetos e timesheet em um só lugar.
               </p>
             </div>
 
@@ -517,6 +662,7 @@ export default function LandingPage() {
                 <li><a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a></li>
                 <li><a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Preços</a></li>
                 <li><a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a></li>
+                <li><Link to="/help" className="text-muted-foreground hover:text-foreground transition-colors">Central de Ajuda</Link></li>
               </ul>
             </div>
 
@@ -532,7 +678,7 @@ export default function LandingPage() {
 
           <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} ASA.Template. Todos os direitos reservados.
+              © {new Date().getFullYear()} growo.app. Todos os direitos reservados.
             </p>
             <p className="text-sm text-muted-foreground">
               Feito com ❤️ no Brasil
