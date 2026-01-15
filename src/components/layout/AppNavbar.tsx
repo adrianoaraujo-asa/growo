@@ -56,7 +56,7 @@ export function AppNavbar() {
   return (
     <header
       className={cn(
-        "h-16 bg-card border-b border-border flex items-center px-4 gap-4 z-30",
+        "h-16 navbar-float flex items-center px-4 gap-4 z-30 transition-all duration-300",
         navbarType === 'sticky' && "sticky top-0",
         navbarType === 'hidden' && "hidden"
       )}
@@ -73,11 +73,11 @@ export function AppNavbar() {
 
       {/* Search */}
       <div className="hidden md:flex items-center flex-1 max-w-md">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative w-full group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
             placeholder="Buscar (Ctrl+/)"
-            className="pl-9 bg-background"
+            className="pl-9 bg-background/50 backdrop-blur-sm input-float border-border/50 hover:border-border transition-all"
           />
         </div>
       </div>
@@ -87,8 +87,8 @@ export function AppNavbar() {
         {/* Language Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
-              <Languages className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="hidden sm:flex navbar-item">
+              <Languages className="h-5 w-5 icon-3d" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -99,20 +99,20 @@ export function AppNavbar() {
         </DropdownMenu>
 
         {/* Theme Toggle */}
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+        <Button variant="ghost" size="icon" onClick={toggleTheme} className="navbar-item">
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5 icon-3d text-warning transition-transform hover:rotate-45" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 icon-3d transition-transform hover:-rotate-12" />
           )}
         </Button>
 
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+            <Button variant="ghost" size="icon" className="relative navbar-item">
+              <Bell className="h-5 w-5 icon-3d" />
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px] badge-glow">
                 4
               </Badge>
             </Button>
@@ -147,20 +147,20 @@ export function AppNavbar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-3">
-              <Avatar className="h-8 w-8">
+            <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-3 navbar-item group">
+              <Avatar className="h-8 w-8 avatar-3d ring-2 ring-transparent group-hover:ring-primary/30 transition-all">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm font-semibold">
                   {user?.email ? getInitials(user.email) : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                   {user?.email?.split('@')[0] || 'Usuário'}
                 </span>
                 <span className="text-xs text-muted-foreground">Admin</span>
               </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block transition-transform group-hover:rotate-180 duration-300" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
