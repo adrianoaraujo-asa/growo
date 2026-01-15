@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="bg-card rounded-lg border border-border shadow-sm">
+    <div className="card-3d bg-card rounded-xl border border-border/50 overflow-hidden">
       <DataTableToolbar
         table={table}
         title={title}
@@ -94,11 +94,11 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-border hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="border-b border-border/50 hover:bg-transparent bg-muted/30">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    className="h-12 px-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80"
                   >
                     {header.isPlaceholder
                       ? null
@@ -125,14 +125,17 @@ export function DataTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, index) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-border hover:bg-muted/50 transition-colors"
+                  className={cn(
+                    "border-b border-border/40 table-row-hover group cursor-pointer",
+                    index % 2 === 0 ? "bg-transparent" : "bg-muted/20"
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-4 py-3">
+                    <TableCell key={cell.id} className="px-4 py-3.5 transition-colors group-hover:text-foreground">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

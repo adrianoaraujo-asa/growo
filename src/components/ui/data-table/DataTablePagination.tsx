@@ -24,7 +24,7 @@ export function DataTablePagination<TData>({
   const endRow = Math.min((pageIndex + 1) * pageSize, totalRows);
 
   return (
-    <div className="flex flex-col gap-4 px-4 py-4 border-t border-border sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 px-5 py-4 border-t border-border/50 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-muted/10 via-transparent to-muted/10">
       {/* Row info */}
       <div className="text-sm text-muted-foreground">
         {totalRows > 0 ? (

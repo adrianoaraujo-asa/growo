@@ -41,11 +41,11 @@ export function DataTableToolbar<TData>({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between border-b border-border">
+    <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between border-b border-border/50 bg-gradient-to-r from-muted/20 via-transparent to-muted/20">
       {/* Title and Export */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {title && (
-          <h5 className="text-lg font-semibold text-heading m-0">{title}</h5>
+          <h5 className="text-lg font-bold text-heading m-0 tracking-tight">{title}</h5>
         )}
         
         {exportOptions?.enabled !== false && (
@@ -85,13 +85,13 @@ export function DataTableToolbar<TData>({
 
       {/* Search and Add */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
             placeholder={searchPlaceholder}
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-9 w-full sm:w-64"
+            className="pl-9 w-full sm:w-64 input-float bg-card/50 border-border/50 hover:border-border"
           />
         </div>
         

@@ -38,35 +38,44 @@ export function SidebarMenuItem({ item, level = 0 }: SidebarMenuItemProps) {
   const content = (
     <>
       {Icon ? (
-        <Icon className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
-          (isActive || isChildActive) ? "text-primary" : "text-muted-foreground"
-        )} />
+        <div className={cn(
+          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
+          (isActive || isChildActive) 
+            ? "bg-primary/15 shadow-sm" 
+            : "bg-transparent group-hover:bg-accent/80"
+        )}>
+          <Icon className={cn(
+            "h-5 w-5 transition-all duration-200",
+            (isActive || isChildActive) ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          )} />
+        </div>
       ) : (
-        <Circle className={cn(
-          "h-2 w-2 shrink-0 ml-1.5",
-          isActive ? "text-primary fill-primary" : "text-muted-foreground"
-        )} />
+        <div className="w-9 h-9 flex items-center justify-center shrink-0">
+          <Circle className={cn(
+            "h-2.5 w-2.5 transition-all duration-200",
+            isActive ? "text-primary fill-primary scale-125" : "text-muted-foreground/60 group-hover:text-muted-foreground group-hover:scale-110"
+          )} />
+        </div>
       )}
       
       {!isCollapsed && (
         <>
           <span className={cn(
-            "flex-1 truncate transition-colors",
-            (isActive || isChildActive) ? "text-foreground font-medium" : "text-muted-foreground"
+            "flex-1 truncate transition-all duration-200",
+            (isActive || isChildActive) ? "text-foreground font-semibold" : "text-muted-foreground group-hover:text-foreground"
           )}>
             {item.title}
           </span>
           
           {item.badge && (
             <span className={cn(
-              "px-2 py-0.5 text-xs rounded-full",
-              item.badgeColor === 'primary' && "bg-primary/10 text-primary",
-              item.badgeColor === 'success' && "bg-success/10 text-success",
-              item.badgeColor === 'warning' && "bg-warning/10 text-warning",
-              item.badgeColor === 'destructive' && "bg-destructive/10 text-destructive",
-              item.badgeColor === 'info' && "bg-info/10 text-info",
-              !item.badgeColor && "bg-primary/10 text-primary"
+              "px-2.5 py-1 text-[10px] font-semibold rounded-full shadow-sm transition-all duration-200",
+              item.badgeColor === 'primary' && "bg-primary/15 text-primary",
+              item.badgeColor === 'success' && "bg-success/15 text-success",
+              item.badgeColor === 'warning' && "bg-warning/15 text-warning",
+              item.badgeColor === 'destructive' && "bg-destructive/15 text-destructive",
+              item.badgeColor === 'info' && "bg-info/15 text-info",
+              !item.badgeColor && "bg-primary/15 text-primary"
             )}>
               {item.badge}
             </span>
@@ -74,8 +83,8 @@ export function SidebarMenuItem({ item, level = 0 }: SidebarMenuItemProps) {
           
           {hasChildren && (
             <ChevronDown className={cn(
-              "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
-              isOpen && "rotate-180"
+              "h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300",
+              isOpen && "rotate-180 text-primary"
             )} />
           )}
         </>
@@ -88,10 +97,10 @@ export function SidebarMenuItem({ item, level = 0 }: SidebarMenuItemProps) {
   );
 
   const baseClasses = cn(
-    "flex items-center gap-3 px-4 py-2.5 rounded-md cursor-pointer transition-all relative group",
-    "hover:bg-accent",
-    (isActive || isChildActive) && "bg-primary/10 hover:bg-primary/15",
-    isActive && "text-primary",
+    "flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 relative group",
+    "hover:bg-accent/60",
+    (isActive || isChildActive) && "bg-primary/10 hover:bg-primary/15 shadow-sm",
+    isActive && "text-primary border-l-[3px] border-primary ml-0 pl-2.5",
     level > 0 && "ml-4"
   );
 
