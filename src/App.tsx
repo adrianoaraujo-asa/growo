@@ -42,8 +42,10 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Redirect root to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* =====================================
+                ÁREA PÚBLICA - LANDING
+            ===================================== */}
+            <Route path="/" element={<LandingPage />} />
 
             {/* Protected Routes with Dashboard Layout */}
             <Route
