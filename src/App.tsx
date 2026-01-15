@@ -159,7 +159,7 @@ const App = () => (
               path="/auth/register"
               element={
                 <PublicRoute>
-                  <RegisterPage />
+                  <Navigate to="/signup" replace />
                 </PublicRoute>
               }
             />
@@ -180,12 +180,54 @@ const App = () => (
             {/* =====================================
                 SIGNUP FLOW (6 Steps)
             ===================================== */}
-            <Route path="/signup" element={<Navigate to="/auth/register" replace />} />
-            <Route path="/signup/verify" element={<PlaceholderPage title="Verificar Email" description="Step 2 de 6" />} />
-            <Route path="/signup/profile" element={<PlaceholderPage title="Dados Pessoais" description="Step 3 de 6" />} />
-            <Route path="/signup/organization" element={<PlaceholderPage title="Dados da Empresa" description="Step 4 de 6" />} />
-            <Route path="/signup/plan" element={<PlaceholderPage title="Escolher Plano" description="Step 5 de 6" />} />
-            <Route path="/signup/checkout" element={<PlaceholderPage title="Checkout" description="Step 6 de 6" />} />
+            <Route
+              path="/signup"
+              element={
+                <PublicRoute>
+                  <SignupCredentialsPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup/verify"
+              element={
+                <PublicRoute>
+                  <SignupVerifyPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup/profile"
+              element={
+                <PublicRoute>
+                  <SignupProfilePage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup/organization"
+              element={
+                <PublicRoute>
+                  <SignupOrganizationPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup/plan"
+              element={
+                <PublicRoute>
+                  <SignupPlanPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup/checkout"
+              element={
+                <PublicRoute>
+                  <SignupCheckoutPage />
+                </PublicRoute>
+              }
+            />
 
             {/* Invite acceptance */}
             <Route path="/invite/:token" element={<PlaceholderPage title="Aceitar Convite" />} />
