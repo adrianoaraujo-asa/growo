@@ -12,13 +12,25 @@ import NotFound from "./pages/NotFound";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import { OrganizationsPage } from "./pages/organizations";
 
+// Public Pages
+import { LandingPage } from "./pages/public";
+
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
 import TwoStepsPage from "./pages/auth/TwoStepsPage";
+
+// Signup Pages (6 steps)
+import {
+  SignupCredentialsPage,
+  SignupVerifyPage,
+  SignupProfilePage,
+  SignupOrganizationPage,
+  SignupPlanPage,
+  SignupCheckoutPage,
+} from "./pages/signup";
 
 const queryClient = new QueryClient();
 
