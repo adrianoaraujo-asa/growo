@@ -13,7 +13,17 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import { OrganizationsPage } from "./pages/organizations";
 
 // Public Pages
-import { LandingPage } from "./pages/public";
+import { LandingPage, TermsPage, PrivacyPage } from "./pages/public";
+
+// Settings Pages
+import {
+  OrganizationSettingsPage,
+  AddressesSettingsPage,
+  ContactsSettingsPage,
+  UsersSettingsPage,
+  BillingSettingsPage,
+  SubscriptionSettingsPage,
+} from "./pages/settings";
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
@@ -43,9 +53,11 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* =====================================
-                ÁREA PÚBLICA - LANDING
+                ÁREA PÚBLICA - LANDING & PAGES
             ===================================== */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             {/* Protected Routes with Dashboard Layout */}
             <Route
@@ -86,13 +98,13 @@ const App = () => (
               {/* =====================================
                   CONFIGURAÇÕES DA ORGANIZAÇÃO
               ===================================== */}
-              <Route path="/settings/organization" element={<PlaceholderPage title="Dados da Empresa" description="Gerencie informações da sua organização." />} />
-              <Route path="/settings/addresses" element={<PlaceholderPage title="Endereços" description="Gerencie os endereços da organização." />} />
-              <Route path="/settings/contacts" element={<PlaceholderPage title="Contatos" description="Gerencie os contatos da organização." />} />
-              <Route path="/settings/billing" element={<PlaceholderPage title="Métodos de Pagamento" description="Gerencie seus cartões e métodos de pagamento." />} />
-              <Route path="/settings/subscription" element={<PlaceholderPage title="Assinatura" description="Visualize e gerencie seu plano atual." />} />
+              <Route path="/settings/organization" element={<OrganizationSettingsPage />} />
+              <Route path="/settings/addresses" element={<AddressesSettingsPage />} />
+              <Route path="/settings/contacts" element={<ContactsSettingsPage />} />
+              <Route path="/settings/billing" element={<BillingSettingsPage />} />
+              <Route path="/settings/subscription" element={<SubscriptionSettingsPage />} />
               <Route path="/settings/invoices" element={<PlaceholderPage title="Faturas" description="Histórico de faturas e downloads." />} />
-              <Route path="/settings/users" element={<PlaceholderPage title="Usuários" description="Gerencie os membros da sua organização." />} />
+              <Route path="/settings/users" element={<UsersSettingsPage />} />
               <Route path="/settings/users/invite" element={<PlaceholderPage title="Convidar Usuário" />} />
               <Route path="/settings/users/:id" element={<PlaceholderPage title="Detalhes do Usuário" />} />
               <Route path="/settings/webhooks" element={<PlaceholderPage title="Webhooks" description="Configure endpoints para receber eventos." />} />
