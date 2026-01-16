@@ -132,8 +132,6 @@ export default function SignupOrganizationPage() {
   const onSubmit = async (formData: OrganizationFormData) => {
     setIsLoading(true);
     
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    
     updateData({
       companyName: formData.companyName,
       documentNumber: formData.documentNumber,

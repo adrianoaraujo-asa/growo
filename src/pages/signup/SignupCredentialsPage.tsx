@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import SignupLayout from "@/components/auth/SignupLayout";
 import { useSignupStore } from "@/stores/signupStore";
+import { useSignup } from "@/hooks/useSignup";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const credentialsSchema = z.object({
@@ -44,9 +46,10 @@ function getPasswordStrength(password: string) {
 export default function SignupCredentialsPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { data, updateData } = useSignupStore();
+  const { data, updateData, setStep } = useSignupStore();
+  const { createAccount, isLoading } = useSignup();
+  const { toast } = useToast();
 
   const form = useForm<CredentialsFormData>({
     resolver: zodResolver(credentialsSchema),
@@ -62,18 +65,35 @@ export default function SignupCredentialsPage() {
   const { requirements, strength } = getPasswordStrength(password);
 
   const onSubmit = async (formData: CredentialsFormData) => {
-    setIsLoading(true);
+    const { error, needsVerification } = await createAccount(formData.email, formData.password);
     
-    // Simulate API call to check if email exists
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar conta",
+        description: error.message,
+      });
+      return;
+    }
+
     updateData({
       email: formData.email,
       password: formData.password,
     });
     
-    setIsLoading(false);
-    navigate("/signup/verify");
+    if (needsVerification) {
+      setStep(2);
+      toast({
+        title: "Verifique seu email",
+        description: "Enviamos um código de verificação para seu email.",
+      });
+      navigate("/signup/verify");
+    } else {
+      // Email already verified (rare case)
+      updateData({ emailVerified: true });
+      setStep(3);
+      navigate("/signup/profile");
+    }
   };
 
   return (
@@ -213,8 +233,14 @@ export default function SignupCredentialsPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Continuar
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando conta...
+              </>
+            ) : (
+              "Continuar"
+            )}
           </Button>
         </form>
 
