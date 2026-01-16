@@ -30,6 +30,14 @@ import {
   ApiKeysSettingsPage,
 } from "./pages/settings";
 
+// Profile Pages
+import {
+  ProfilePage,
+  SecurityPage,
+  SessionsPage,
+  NotificationsPage,
+} from "./pages/profile";
+
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -119,10 +127,10 @@ const App = () => (
               {/* =====================================
                   PERFIL DO USUÁRIO
               ===================================== */}
-              <Route path="/profile" element={<PlaceholderPage title="Meu Perfil" description="Gerencie suas informações pessoais." />} />
-              <Route path="/profile/security" element={<PlaceholderPage title="Segurança" description="Alterar senha e configurar MFA." />} />
-              <Route path="/profile/sessions" element={<PlaceholderPage title="Sessões Ativas" description="Visualize e encerre sessões." />} />
-              <Route path="/profile/notifications" element={<PlaceholderPage title="Preferências de Notificação" description="Configure como deseja receber notificações." />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/security" element={<SecurityPage />} />
+              <Route path="/profile/sessions" element={<SessionsPage />} />
+              <Route path="/profile/notifications" element={<NotificationsPage />} />
 
               {/* =====================================
                   NOTIFICAÇÕES
