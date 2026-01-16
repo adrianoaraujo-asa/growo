@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import dashboardPreview from "@/assets/dashboard-preview.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
@@ -382,14 +383,11 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
           >
             <div className="card-3d p-2 max-w-5xl mx-auto">
-              {/* Placeholder para screenshot do dashboard */}
-              <div className="w-full aspect-video bg-gradient-to-br from-muted to-muted/50 rounded-lg flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Building2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Screenshot do Dashboard</p>
-                  <p className="text-sm opacity-75">Adicione a imagem do seu produto aqui</p>
-                </div>
-              </div>
+              <img 
+                src={dashboardPreview} 
+                alt="Dashboard do growo.app - Gestão de projetos de TI"
+                className="w-full aspect-video rounded-lg object-cover object-top shadow-2xl"
+              />
             </div>
             {/* Gradient overlay */}
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
