@@ -38,6 +38,13 @@ import {
   NotificationsPage,
 } from "./pages/profile";
 
+// Docs Pages
+import {
+  DocsPage,
+  DocEditorPage,
+  DocHistoryPage,
+} from "./pages/docs";
+
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -89,9 +96,9 @@ const App = () => (
               {/* =====================================
                   DOCUMENTOS (WIKI)
               ===================================== */}
-              <Route path="/docs" element={<PlaceholderPage title="Documentos" description="Sistema de documentação colaborativa estilo Notion." />} />
-              <Route path="/docs/:id" element={<PlaceholderPage title="Editor de Documento" />} />
-              <Route path="/docs/:id/history" element={<PlaceholderPage title="Histórico de Versões" />} />
+              <Route path="/docs" element={<DocsPage />} />
+              <Route path="/docs/:id" element={<DocEditorPage />} />
+              <Route path="/docs/:id/history" element={<DocHistoryPage />} />
 
               {/* =====================================
                   MÓDULOS DO SAAS (growo.app)
