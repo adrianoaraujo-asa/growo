@@ -21,8 +21,13 @@ import {
   AddressesSettingsPage,
   ContactsSettingsPage,
   UsersSettingsPage,
+  UserDetailsPage,
+  UserInvitePage,
   BillingSettingsPage,
   SubscriptionSettingsPage,
+  InvoicesSettingsPage,
+  WebhooksSettingsPage,
+  ApiKeysSettingsPage,
 } from "./pages/settings";
 
 // Auth Pages
@@ -103,12 +108,12 @@ const App = () => (
               <Route path="/settings/contacts" element={<ContactsSettingsPage />} />
               <Route path="/settings/billing" element={<BillingSettingsPage />} />
               <Route path="/settings/subscription" element={<SubscriptionSettingsPage />} />
-              <Route path="/settings/invoices" element={<PlaceholderPage title="Faturas" description="Histórico de faturas e downloads." />} />
+              <Route path="/settings/invoices" element={<InvoicesSettingsPage />} />
               <Route path="/settings/users" element={<UsersSettingsPage />} />
-              <Route path="/settings/users/invite" element={<PlaceholderPage title="Convidar Usuário" />} />
-              <Route path="/settings/users/:id" element={<PlaceholderPage title="Detalhes do Usuário" />} />
-              <Route path="/settings/webhooks" element={<PlaceholderPage title="Webhooks" description="Configure endpoints para receber eventos." />} />
-              <Route path="/settings/api-keys" element={<PlaceholderPage title="API Keys" description="Gerencie suas chaves de API." />} />
+              <Route path="/settings/users/invite" element={<UserInvitePage />} />
+              <Route path="/settings/users/:id" element={<UserDetailsPage />} />
+              <Route path="/settings/webhooks" element={<WebhooksSettingsPage />} />
+              <Route path="/settings/api-keys" element={<ApiKeysSettingsPage />} />
               <Route path="/settings/preferences" element={<PlaceholderPage title="Preferências" description="Configurações de localização e aparência." />} />
 
               {/* =====================================
