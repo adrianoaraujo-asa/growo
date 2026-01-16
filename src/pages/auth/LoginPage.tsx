@@ -46,7 +46,7 @@ export default function LoginPage() {
           title: "Bem-vindo!",
           description: "Login realizado com sucesso.",
         });
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch {
       toast({

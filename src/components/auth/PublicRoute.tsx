@@ -23,7 +23,7 @@ export function PublicRoute({ children }: PublicRouteProps) {
 
   if (user) {
     // Redirect authenticated users to dashboard or the page they came from
-    const from = (location.state as { from?: Location })?.from?.pathname || "/";
+    const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
     return <Navigate to={from} replace />;
   }
 
