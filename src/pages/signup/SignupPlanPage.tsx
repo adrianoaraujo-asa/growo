@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Check, Sparkles } from "lucide-react";
+import { ChevronLeft, Check, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SignupLayout from "@/components/auth/SignupLayout";
 import { useSignupStore } from "@/stores/signupStore";
+import { useSignup } from "@/hooks/useSignup";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const plans = [
@@ -59,20 +61,41 @@ const plans = [
 
 export default function SignupPlanPage() {
   const navigate = useNavigate();
-  const { data, updateData } = useSignupStore();
+  const { data, updateData, reset } = useSignupStore();
+  const { finalizeSignup, isLoading: isCreating } = useSignup();
+  const { toast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState(data.selectedPlan || "pro");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(data.billingPeriod || "monthly");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     updateData({
       selectedPlan,
       billingPeriod,
     });
 
-    // Free plan goes directly to dashboard (no payment)
+    // Free plan - create account immediately
     if (selectedPlan === "free") {
-      // TODO: Create account and redirect to dashboard
-      navigate("/dashboard");
+      setIsProcessing(true);
+      const { error } = await finalizeSignup();
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao criar conta",
+          description: error.message,
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      toast({
+        title: "Conta criada com sucesso! 🎉",
+        description: "Bem-vindo ao ASA.Template!",
+      });
+      
+      reset();
+      navigate("/");
     } else {
       navigate("/signup/checkout");
     }
@@ -194,12 +217,26 @@ export default function SignupPlanPage() {
             type="button"
             variant="outline"
             onClick={() => navigate("/signup/organization")}
+            disabled={isProcessing || isCreating}
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-          <Button onClick={handleContinue} className="flex-1">
-            {selectedPlan === "free" ? "Criar conta grátis" : "Continuar para pagamento"}
+          <Button 
+            onClick={handleContinue} 
+            className="flex-1" 
+            disabled={isProcessing || isCreating}
+          >
+            {(isProcessing || isCreating) ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando conta...
+              </>
+            ) : selectedPlan === "free" ? (
+              "Criar conta grátis"
+            ) : (
+              "Continuar para pagamento"
+            )}
           </Button>
         </div>
       </div>

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import SignupLayout from "@/components/auth/SignupLayout";
 import { useSignupStore } from "@/stores/signupStore";
+import { useSignup } from "@/hooks/useSignup";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +59,7 @@ export default function SignupCheckoutPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data, reset } = useSignupStore();
+  const { finalizeSignup } = useSignup();
 
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -76,17 +78,28 @@ export default function SignupCheckoutPage() {
   const price = data.billingPeriod === "monthly" ? selectedPlan.price.monthly : selectedPlan.price.yearly;
   const monthlyPrice = data.billingPeriod === "monthly" ? price : Math.round(price / 12);
 
-  const onSubmit = async (formData: CheckoutFormData) => {
+  const onSubmit = async (_formData: CheckoutFormData) => {
     setIsLoading(true);
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     // In production, this would:
-    // 1. Tokenize card with payment gateway
+    // 1. Tokenize card with payment gateway (Stripe, etc.)
     // 2. Create subscription
-    // 3. Create user account
-    // 4. Send confirmation email
+    
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Create account and organization
+    const { error } = await finalizeSignup();
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar conta",
+        description: error.message,
+      });
+      setIsLoading(false);
+      return;
+    }
 
     toast({
       title: "Conta criada com sucesso! 🎉",
@@ -97,7 +110,7 @@ export default function SignupCheckoutPage() {
 
     reset();
     setIsLoading(false);
-    navigate("/dashboard");
+    navigate("/");
   };
 
   return (

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import SignupLayout from "@/components/auth/SignupLayout";
 import { useSignupStore } from "@/stores/signupStore";
+import { useSignup } from "@/hooks/useSignup";
 import { cn } from "@/lib/utils";
 
 export default function SignupVerifyPage() {
@@ -15,7 +16,8 @@ export default function SignupVerifyPage() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data, updateData } = useSignupStore();
+  const { data, updateData, setStep } = useSignupStore();
+  const { verifyOtp, resendOtp } = useSignup();
 
   // Countdown for resend
   useEffect(() => {
@@ -73,15 +75,13 @@ export default function SignupVerifyPage() {
 
     setIsLoading(true);
 
-    // Simulate verification (in production, call API)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const { error, session } = await verifyOtp(data.email || "", code);
 
-    // For demo, accept any 6-digit code
-    if (code === "000000") {
+    if (error) {
       toast({
         variant: "destructive",
         title: "Código inválido",
-        description: "O código inserido está incorreto. Tente novamente.",
+        description: error.message || "O código inserido está incorreto. Tente novamente.",
       });
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
@@ -89,28 +89,41 @@ export default function SignupVerifyPage() {
       return;
     }
 
-    updateData({ emailVerified: true });
-    toast({
-      title: "Email verificado!",
-      description: "Sua conta foi verificada com sucesso.",
-    });
+    if (session) {
+      updateData({ emailVerified: true });
+      setStep(3);
+      toast({
+        title: "Email verificado!",
+        description: "Sua conta foi verificada com sucesso.",
+      });
+      navigate("/signup/profile");
+    }
+    
     setIsLoading(false);
-    navigate("/signup/profile");
   };
 
   const handleResend = async () => {
-    if (!canResend) return;
+    if (!canResend || !data.email) return;
     
     setCanResend(false);
     setResendCooldown(60);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const { error } = await resendOtp(data.email);
     
-    toast({
-      title: "Código reenviado",
-      description: `Um novo código foi enviado para ${data.email}`,
-    });
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao reenviar",
+        description: error.message,
+      });
+      setCanResend(true);
+      setResendCooldown(0);
+    } else {
+      toast({
+        title: "Código reenviado",
+        description: `Um novo código foi enviado para ${data.email}`,
+      });
+    }
   };
 
   const maskedEmail = data.email?.replace(/(.{2})(.*)(@.*)/, "$1***$3") || "";

@@ -49,8 +49,6 @@ export default function SignupProfilePage() {
   const onSubmit = async (formData: ProfileFormData) => {
     setIsLoading(true);
     
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    
     updateData({
       firstName: formData.firstName,
       lastName: formData.lastName,
