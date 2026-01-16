@@ -1,14 +1,10 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
   Check, 
-  Zap, 
-  Shield, 
-  Users, 
   BarChart3, 
   Clock, 
-  FileText,
   ChevronDown,
   Star,
   Briefcase,
@@ -16,12 +12,17 @@ import {
   UserCog,
   CalendarDays,
   Building2,
-  Play
+  Play,
+  Menu,
+  X,
+  Mail,
+  Linkedin,
+  Twitter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Animation variants
 const fadeInUp = {
@@ -165,48 +166,155 @@ const trustedBy = [
 export default function LandingPage() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect for header
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close mobile menu on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled 
+          ? "bg-background/95 backdrop-blur-xl border-b border-border shadow-sm" 
+          : "bg-background/80 backdrop-blur-xl border-b border-border/50"
+      )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
                 <span className="text-primary-foreground font-bold text-lg">G</span>
               </div>
               <span className="text-xl font-semibold text-heading">growo</span>
             </Link>
 
-            {/* Navigation */}
+            {/* Navigation - Desktop */}
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="#features" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
                 Recursos
               </a>
-              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="#pricing" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
                 Preços
               </a>
-              <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="#faq" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
                 FAQ
               </a>
-              <Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Suporte
-              </Link>
+              <a 
+                href="#testimonials" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+              >
+                Depoimentos
+              </a>
             </nav>
 
-            {/* CTA */}
-            <div className="flex items-center gap-3">
+            {/* CTA - Desktop */}
+            <div className="hidden md:flex items-center gap-3">
               <Link to="/auth/login">
-                <Button variant="ghost" size="sm">Entrar</Button>
+                <Button variant="ghost" size="sm" className="font-medium">
+                  Entrar
+                </Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm" className="btn-float">Começar Grátis</Button>
+                <Button size="sm" className="btn-float font-medium">
+                  Começar Grátis
+                </Button>
               </Link>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-background border-t border-border"
+            >
+              <nav className="flex flex-col p-4 space-y-3">
+                <a 
+                  href="#features" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-2 font-medium"
+                >
+                  Recursos
+                </a>
+                <a 
+                  href="#pricing" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-2 font-medium"
+                >
+                  Preços
+                </a>
+                <a 
+                  href="#faq" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-2 font-medium"
+                >
+                  FAQ
+                </a>
+                <a 
+                  href="#testimonials" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-2 font-medium"
+                >
+                  Depoimentos
+                </a>
+                <div className="pt-3 border-t border-border flex flex-col gap-2">
+                  <Link to="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full font-medium">
+                      Entrar
+                    </Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full btn-float font-medium">
+                      Começar Grátis
+                    </Button>
+                  </Link>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Hero Section */}
@@ -509,7 +617,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4">Depoimentos</Badge>
@@ -638,45 +746,106 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-border bg-muted/30 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-8 lg:gap-12">
             {/* Logo & Description */}
             <div className="md:col-span-2">
-              <Link to="/" className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Link to="/" className="flex items-center gap-2 mb-4 group">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
                   <span className="text-primary-foreground font-bold text-lg">G</span>
                 </div>
                 <span className="text-xl font-semibold text-heading">growo</span>
               </Link>
-              <p className="text-muted-foreground max-w-sm">
+              <p className="text-muted-foreground max-w-sm mb-6">
                 Plataforma completa de gestão para empresas de TI. 
                 Profissionais, projetos e timesheet em um só lugar.
               </p>
+              {/* Social Links */}
+              <div className="flex items-center gap-3">
+                <a 
+                  href="mailto:contato@growo.app" 
+                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                  aria-label="Email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+              </div>
             </div>
 
             {/* Links */}
             <div>
               <h4 className="font-semibold text-heading mb-4">Produto</h4>
-              <ul className="space-y-2">
-                <li><a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a></li>
-                <li><a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Preços</a></li>
-                <li><a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a></li>
-                <li><Link to="/help" className="text-muted-foreground hover:text-foreground transition-colors">Central de Ajuda</Link></li>
+              <ul className="space-y-3">
+                <li>
+                  <a href="#features" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Recursos
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Preços
+                  </a>
+                </li>
+                <li>
+                  <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    FAQ
+                  </a>
+                </li>
+                <li>
+                  <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Depoimentos
+                  </a>
+                </li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold text-heading mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Termos de Uso</Link></li>
-                <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacidade</Link></li>
-                <li><Link to="/status" className="text-muted-foreground hover:text-foreground transition-colors">Status</Link></li>
+              <ul className="space-y-3">
+                <li>
+                  <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Termos de Uso
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Privacidade
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/auth/login" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Entrar
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/signup" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    Criar Conta
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} growo.app. Todos os direitos reservados.
             </p>
