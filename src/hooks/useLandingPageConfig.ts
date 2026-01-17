@@ -53,11 +53,10 @@ const defaultCompanyInfo: LandingPageCompanyInfo = {
 async function fetchLandingPageSettings(): Promise<Array<{ key: string; value: unknown }> | null> {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/settings?key=in.("landing_page_logo","landing_page_colors","landing_page_social_links","landing_page_company_info")&select=key,value`,
+      `${SUPABASE_URL}/rest/v1/public_landing_settings?select=key,value`,
       {
         headers: {
           "apikey": SUPABASE_ANON_KEY,
-          "Accept-Profile": "system",
           "Content-Type": "application/json"
         }
       }
@@ -78,11 +77,10 @@ async function fetchLandingPageSettings(): Promise<Array<{ key: string; value: u
 async function fetchBillingPlans(): Promise<BillingPlan[]> {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/plans?is_active=eq.true&is_public=eq.true&deleted_at=is.null&order=sort_order.asc`,
+      `${SUPABASE_URL}/rest/v1/public_billing_plans?order=sort_order.asc`,
       {
         headers: {
           "apikey": SUPABASE_ANON_KEY,
-          "Accept-Profile": "billing",
           "Content-Type": "application/json"
         }
       }
