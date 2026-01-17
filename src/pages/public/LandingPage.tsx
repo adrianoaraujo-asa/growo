@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import dashboardPreview from "@/assets/dashboard-preview.png";
+import defaultLogo from "@/assets/logo-default.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
@@ -18,12 +19,18 @@ import {
   X,
   Mail,
   Linkedin,
-  Twitter
+  Twitter,
+  Facebook,
+  Instagram,
+  Youtube,
+  Github
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useLandingPageConfig } from "@/hooks/useLandingPageConfig";
+import type { BillingPlan } from "@/types/landing";
 
 // Animation variants
 const fadeInUp = {
@@ -74,59 +81,6 @@ const features = [
   }
 ];
 
-// Plans data
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    description: "Para pequenas equipes",
-    price: { monthly: 0, yearly: 0 },
-    features: [
-      "Até 5 profissionais",
-      "3 projetos ativos",
-      "Timesheet básico",
-      "Relatórios essenciais",
-      "Suporte por email"
-    ],
-    cta: "Começar Grátis",
-    popular: false
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Para empresas em crescimento",
-    price: { monthly: 99, yearly: 948 },
-    features: [
-      "Até 25 profissionais",
-      "Projetos ilimitados",
-      "Timesheet avançado",
-      "Kanban & Calendar",
-      "API & Integrações",
-      "Relatórios avançados",
-      "Suporte prioritário"
-    ],
-    cta: "Iniciar Trial Grátis",
-    popular: true
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Para grandes organizações",
-    price: { monthly: 299, yearly: 2868 },
-    features: [
-      "Profissionais ilimitados",
-      "Multi-organizações",
-      "SSO & SAML",
-      "SLA 99.9%",
-      "Onboarding dedicado",
-      "Suporte 24/7",
-      "Customizações"
-    ],
-    cta: "Falar com Vendas",
-    popular: false
-  }
-];
-
 // FAQ data
 const faqs = [
   {
@@ -169,6 +123,43 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Load dynamic configuration
+  const { config, isLoading } = useLandingPageConfig();
+  const { logo, socialLinks, companyInfo, plans: dbPlans } = config;
+
+  // Transform database plans to UI format
+  const plans = useMemo(() => {
+    if (dbPlans.length === 0) return [];
+    
+    // Find the "professional" plan to mark as popular
+    return dbPlans.map((plan: BillingPlan) => ({
+      id: plan.id,
+      slug: plan.slug,
+      name: plan.name,
+      description: plan.description || "",
+      price_monthly: Number(plan.price_monthly) || 0,
+      price_yearly: Number(plan.price_yearly) || 0,
+      features: plan.features || [],
+      popular: plan.slug === "professional",
+      cta: plan.slug === "enterprise" ? "Falar com Vendas" : 
+           plan.slug === "free" ? "Começar Grátis" : "Iniciar Trial Grátis"
+    }));
+  }, [dbPlans]);
+
+  // Social icons configuration
+  const socialIcons = useMemo(() => {
+    const icons: Array<{ key: string; icon: typeof Facebook; url: string; label: string }> = [];
+    
+    if (socialLinks.facebook) icons.push({ key: "facebook", icon: Facebook, url: socialLinks.facebook, label: "Facebook" });
+    if (socialLinks.twitter) icons.push({ key: "twitter", icon: Twitter, url: socialLinks.twitter, label: "Twitter" });
+    if (socialLinks.linkedin) icons.push({ key: "linkedin", icon: Linkedin, url: socialLinks.linkedin, label: "LinkedIn" });
+    if (socialLinks.instagram) icons.push({ key: "instagram", icon: Instagram, url: socialLinks.instagram, label: "Instagram" });
+    if (socialLinks.youtube) icons.push({ key: "youtube", icon: Youtube, url: socialLinks.youtube, label: "YouTube" });
+    if (socialLinks.github) icons.push({ key: "github", icon: Github, url: socialLinks.github, label: "GitHub" });
+    
+    return icons;
+  }, [socialLinks]);
 
   // Handle scroll effect for header
   useEffect(() => {
@@ -203,10 +194,12 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
-                <span className="text-primary-foreground font-bold text-lg">G</span>
-              </div>
-              <span className="text-xl font-semibold text-heading">growo</span>
+              {logo.url ? (
+                <img src={logo.url} alt={logo.alt} className="h-8 w-auto transition-transform group-hover:scale-105" />
+              ) : (
+                <img src={defaultLogo} alt={logo.alt} className="h-8 w-auto transition-transform group-hover:scale-105" />
+              )}
+              <span className="text-xl font-semibold text-heading">{companyInfo.name.replace('.app', '')}</span>
             </Link>
 
             {/* Navigation - Desktop */}
@@ -575,15 +568,15 @@ export default function LandingPage() {
                     <span className="text-sm text-muted-foreground">R$</span>
                     <span className="text-4xl font-bold text-heading">
                       {billingPeriod === "monthly" 
-                        ? plan.price.monthly.toLocaleString('pt-BR')
-                        : Math.round(plan.price.yearly / 12).toLocaleString('pt-BR')
+                        ? plan.price_monthly.toLocaleString('pt-BR')
+                        : Math.round(plan.price_yearly / 12).toLocaleString('pt-BR')
                       }
                     </span>
                     <span className="text-muted-foreground">/mês</span>
                   </div>
-                  {billingPeriod === "yearly" && plan.price.yearly > 0 && (
+                  {billingPeriod === "yearly" && plan.price_yearly > 0 && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      R$ {plan.price.yearly.toLocaleString('pt-BR')}/ano
+                      R$ {plan.price_yearly.toLocaleString('pt-BR')}/ano
                     </p>
                   )}
                 </div>
@@ -750,42 +743,39 @@ export default function LandingPage() {
             {/* Logo & Description */}
             <div className="md:col-span-2">
               <Link to="/" className="flex items-center gap-2 mb-4 group">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
-                  <span className="text-primary-foreground font-bold text-lg">G</span>
-                </div>
-                <span className="text-xl font-semibold text-heading">growo</span>
+                {logo.url ? (
+                  <img src={logo.url} alt={logo.alt} className="h-8 w-auto transition-transform group-hover:scale-105" />
+                ) : (
+                  <img src={defaultLogo} alt={logo.alt} className="h-8 w-auto transition-transform group-hover:scale-105" />
+                )}
+                <span className="text-xl font-semibold text-heading">{companyInfo.name.replace('.app', '')}</span>
               </Link>
               <p className="text-muted-foreground max-w-sm mb-6">
-                Plataforma completa de gestão para empresas de TI. 
-                Profissionais, projetos e timesheet em um só lugar.
+                {companyInfo.description}
               </p>
               {/* Social Links */}
               <div className="flex items-center gap-3">
-                <a 
-                  href="mailto:contato@growo.app" 
-                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-                  aria-label="Email"
-                >
-                  <Mail className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://linkedin.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="w-4 h-4" />
-                </a>
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
+                {companyInfo.email && (
+                  <a 
+                    href={`mailto:${companyInfo.email}`}
+                    className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                    aria-label="Email"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </a>
+                )}
+                {socialIcons.map(({ key, icon: Icon, url, label }) => (
+                  <a 
+                    key={key}
+                    href={url}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                    aria-label={label}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                ))}
               </div>
             </div>
 
@@ -845,7 +835,7 @@ export default function LandingPage() {
 
           <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} growo.app. Todos os direitos reservados.
+              © {new Date().getFullYear()} {companyInfo.name}. Todos os direitos reservados.
             </p>
             <p className="text-sm text-muted-foreground">
               Feito com ❤️ no Brasil
