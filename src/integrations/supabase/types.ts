@@ -541,7 +541,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_billing_plans: {
+        Row: {
+          currency: string | null
+          description: string | null
+          features: Json | null
+          id: string | null
+          limits: Json | null
+          name: string | null
+          price_monthly: number | null
+          price_yearly: number | null
+          slug: string | null
+          sort_order: number | null
+          trial_days: number | null
+        }
+        Insert: {
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string | null
+          limits?: Json | null
+          name?: string | null
+          price_monthly?: number | null
+          price_yearly?: number | null
+          slug?: string | null
+          sort_order?: number | null
+          trial_days?: number | null
+        }
+        Update: {
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string | null
+          limits?: Json | null
+          name?: string | null
+          price_monthly?: number | null
+          price_yearly?: number | null
+          slug?: string | null
+          sort_order?: number | null
+          trial_days?: number | null
+        }
+        Relationships: []
+      }
+      public_landing_settings: {
+        Row: {
+          key: string | null
+          value: Json | null
+        }
+        Insert: {
+          key?: string | null
+          value?: Json | null
+        }
+        Update: {
+          key?: string | null
+          value?: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_organization: { Args: { _user_id: string }; Returns: string }
