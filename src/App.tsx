@@ -15,6 +15,9 @@ import { OrganizationsPage } from "./pages/organizations";
 // Public Pages
 import { LandingPage, TermsPage, PrivacyPage } from "./pages/public";
 
+// Admin Pages
+import { PlansAdminPage, LandingSettingsAdminPage } from "./pages/admin";
+
 // Settings Pages
 import {
   OrganizationSettingsPage,
@@ -156,8 +159,9 @@ const App = () => (
               <Route path="/admin" element={<PlaceholderPage title="Dashboard Admin" description="Visão geral do sistema." />} />
               <Route path="/admin/organizations" element={<PlaceholderPage title="Organizações (Admin)" />} />
               <Route path="/admin/users" element={<PlaceholderPage title="Usuários (Admin)" />} />
-              <Route path="/admin/plans" element={<PlaceholderPage title="Planos" />} />
+              <Route path="/admin/plans" element={<PlansAdminPage />} />
               <Route path="/admin/features" element={<PlaceholderPage title="Features" />} />
+              <Route path="/admin/landing" element={<LandingSettingsAdminPage />} />
               <Route path="/admin/logs" element={<PlaceholderPage title="Logs do Sistema" />} />
             </Route>
 

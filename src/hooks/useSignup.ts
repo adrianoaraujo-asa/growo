@@ -10,24 +10,6 @@ export function useSignup() {
   const createAccount = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // First check if user already exists
-      const { data: existingUser } = await supabase.auth.signInWithPassword({
-        email,
-        password: "dummy-check", // This will fail but tells us if user exists
-      });
-
-      // If signin worked (shouldn't happen with dummy password), user exists
-      if (existingUser?.user) {
-        return { 
-          error: { message: "Este email já está cadastrado. Faça login." },
-          needsVerification: false 
-        };
-      }
-    } catch {
-      // Expected to fail, continue with signup
-    }
-
-    try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -38,13 +20,22 @@ export function useSignup() {
 
       if (error) {
         // Handle specific errors
-        if (error.message.includes("already registered")) {
+        if (error.message.includes("already registered") || error.message.includes("User already registered")) {
           return { 
             error: { message: "Este email já está cadastrado. Faça login." },
             needsVerification: false 
           };
         }
         return { error, needsVerification: false };
+      }
+
+      // Supabase returns user with identities = [] when email already exists (fake signup)
+      // This is Supabase's default behavior to prevent email enumeration
+      if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+        return { 
+          error: { message: "Este email já está cadastrado. Faça login." },
+          needsVerification: false 
+        };
       }
 
       // Check if user needs email verification
