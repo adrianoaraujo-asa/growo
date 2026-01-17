@@ -274,6 +274,12 @@ export const adminMenuConfig: MenuSection[] = [
         path: '/admin/features',
       },
       {
+        id: 'admin-landing',
+        title: 'Landing Page',
+        icon: MonitorSmartphone,
+        path: '/admin/landing',
+      },
+      {
         id: 'admin-logs',
         title: 'Logs',
         icon: FileText,
