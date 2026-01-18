@@ -269,7 +269,7 @@ export function DocumentPermissions({
                 Nenhuma pessoa adicionada ainda.
               </p>
             ) : (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              <div className="space-y-2">
                 {permissions.map((perm) => (
                   <div
                     key={perm.id}
