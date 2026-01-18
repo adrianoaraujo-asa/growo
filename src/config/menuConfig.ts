@@ -5,28 +5,17 @@ import {
   CreditCard,
   Users,
   Webhook,
-  Sliders,
   User,
   Shield,
   Bell,
   MonitorSmartphone,
-  HelpCircle,
-  MessageSquare,
-  FolderKanban,
-  Clock,
-  CalendarDays,
-  BarChart3,
-  Briefcase,
-  UserCog,
-  Activity,
-  Database,
-  Settings,
+  Key,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
 // =====================================
 // MENU DO CLIENTE (Usuários regulares)
-// Telas que o cliente vê baseado no perfil
+// Apenas telas que estão implementadas
 // =====================================
 export const menuConfig: MenuSection[] = [
   {
@@ -38,12 +27,7 @@ export const menuConfig: MenuSection[] = [
         title: 'Dashboard',
         icon: LayoutDashboard,
         path: '/dashboard',
-      },
-      {
-        id: 'analytics',
-        title: 'Analytics',
-        icon: BarChart3,
-        path: '/analytics',
+        badge: '✓',
       },
     ],
   },
@@ -57,6 +41,7 @@ export const menuConfig: MenuSection[] = [
         title: 'Documentos',
         icon: FileText,
         path: '/docs',
+        badge: '✓',
       },
     ],
   },
@@ -69,50 +54,8 @@ export const menuConfig: MenuSection[] = [
         id: 'organizations',
         title: 'Organizações',
         icon: Building2,
-        children: [
-          { id: 'org-list', title: 'Lista', path: '/organizations' },
-          { id: 'org-new', title: 'Nova Organização', path: '/organizations/new' },
-        ],
-      },
-      {
-        id: 'professionals',
-        title: 'Profissionais',
-        icon: UserCog,
-        children: [
-          { id: 'prof-list', title: 'Lista', path: '/professionals' },
-          { id: 'prof-skills', title: 'Skills', path: '/professionals/skills' },
-        ],
-      },
-      {
-        id: 'clients',
-        title: 'Clientes',
-        icon: Briefcase,
-        path: '/clients',
-      },
-      {
-        id: 'projects',
-        title: 'Projetos',
-        icon: FolderKanban,
-        children: [
-          { id: 'proj-list', title: 'Lista', path: '/projects' },
-          { id: 'proj-kanban', title: 'Kanban', path: '/projects/kanban' },
-        ],
-      },
-      {
-        id: 'timesheet',
-        title: 'Timesheet',
-        icon: Clock,
-        children: [
-          { id: 'time-entries', title: 'Lançamentos', path: '/timesheet' },
-          { id: 'time-calendar', title: 'Calendário', path: '/timesheet/calendar' },
-          { id: 'time-reports', title: 'Relatórios', path: '/timesheet/reports' },
-        ],
-      },
-      {
-        id: 'calendar',
-        title: 'Calendário',
-        icon: CalendarDays,
-        path: '/calendar',
+        path: '/organizations',
+        badge: '✓',
       },
     ],
   },
@@ -126,9 +69,9 @@ export const menuConfig: MenuSection[] = [
         title: 'Organização',
         icon: Building2,
         children: [
-          { id: 'org-data', title: 'Dados da Empresa', path: '/settings/organization' },
-          { id: 'org-addresses', title: 'Endereços', path: '/settings/addresses' },
-          { id: 'org-contacts', title: 'Contatos', path: '/settings/contacts' },
+          { id: 'org-data', title: 'Dados da Empresa', path: '/settings/organization', badge: '✓' },
+          { id: 'org-addresses', title: 'Endereços', path: '/settings/addresses', badge: '✓' },
+          { id: 'org-contacts', title: 'Contatos', path: '/settings/contacts', badge: '✓' },
         ],
       },
       {
@@ -136,9 +79,9 @@ export const menuConfig: MenuSection[] = [
         title: 'Financeiro',
         icon: CreditCard,
         children: [
-          { id: 'billing-methods', title: 'Métodos de Pagamento', path: '/settings/billing' },
-          { id: 'billing-subscription', title: 'Assinatura', path: '/settings/subscription' },
-          { id: 'billing-invoices', title: 'Faturas', path: '/settings/invoices' },
+          { id: 'billing-methods', title: 'Métodos de Pagamento', path: '/settings/billing', badge: '✓' },
+          { id: 'billing-subscription', title: 'Assinatura', path: '/settings/subscription', badge: '✓' },
+          { id: 'billing-invoices', title: 'Faturas', path: '/settings/invoices', badge: '✓' },
         ],
       },
       {
@@ -146,8 +89,8 @@ export const menuConfig: MenuSection[] = [
         title: 'Equipe',
         icon: Users,
         children: [
-          { id: 'team-users', title: 'Usuários', path: '/settings/users' },
-          { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite' },
+          { id: 'team-users', title: 'Usuários', path: '/settings/users', badge: '✓' },
+          { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite', badge: '✓' },
         ],
       },
       {
@@ -155,15 +98,9 @@ export const menuConfig: MenuSection[] = [
         title: 'Integrações',
         icon: Webhook,
         children: [
-          { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks' },
-          { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys' },
+          { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks', badge: '✓' },
+          { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys', badge: '✓' },
         ],
-      },
-      {
-        id: 'preferences',
-        title: 'Preferências',
-        icon: Sliders,
-        path: '/settings/preferences',
       },
     ],
   },
@@ -177,14 +114,15 @@ export const menuConfig: MenuSection[] = [
         title: 'Meu Perfil',
         icon: User,
         path: '/profile',
+        badge: '✓',
       },
       {
         id: 'security',
         title: 'Segurança',
         icon: Shield,
         children: [
-          { id: 'sec-password', title: 'Alterar Senha', path: '/profile/security' },
-          { id: 'sec-sessions', title: 'Sessões Ativas', path: '/profile/sessions' },
+          { id: 'sec-password', title: 'Alterar Senha', path: '/profile/security', badge: '✓' },
+          { id: 'sec-sessions', title: 'Sessões Ativas', path: '/profile/sessions', badge: '✓' },
         ],
       },
       {
@@ -192,25 +130,7 @@ export const menuConfig: MenuSection[] = [
         title: 'Notificações',
         icon: Bell,
         path: '/profile/notifications',
-      },
-    ],
-  },
-
-  {
-    id: 'help',
-    title: 'Ajuda',
-    items: [
-      {
-        id: 'help-center',
-        title: 'Central de Ajuda',
-        icon: HelpCircle,
-        path: '/help',
-      },
-      {
-        id: 'support',
-        title: 'Suporte',
-        icon: MessageSquare,
-        path: '/help/contact',
+        badge: '✓',
       },
     ],
   },
@@ -218,41 +138,9 @@ export const menuConfig: MenuSection[] = [
 
 // =====================================
 // MENU DO SUPERADMIN
-// Inclui telas dos clientes + configurações do produto
+// Apenas telas implementadas
 // =====================================
 export const adminMenuConfig: MenuSection[] = [
-  // ----- Gestão de Clientes -----
-  {
-    id: 'admin-clients',
-    title: 'Gestão de Clientes',
-    items: [
-      {
-        id: 'admin-dashboard',
-        title: 'Dashboard',
-        icon: LayoutDashboard,
-        path: '/admin',
-      },
-      {
-        id: 'admin-orgs',
-        title: 'Organizações',
-        icon: Building2,
-        path: '/admin/organizations',
-      },
-      {
-        id: 'admin-users',
-        title: 'Usuários',
-        icon: Users,
-        path: '/admin/users',
-      },
-      {
-        id: 'admin-subscriptions',
-        title: 'Assinaturas',
-        icon: CreditCard,
-        path: '/admin/subscriptions',
-      },
-    ],
-  },
-
   // ----- Configurações do Produto -----
   {
     id: 'admin-product',
@@ -263,50 +151,14 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Planos',
         icon: CreditCard,
         path: '/admin/plans',
-      },
-      {
-        id: 'admin-features',
-        title: 'Features',
-        icon: Sliders,
-        path: '/admin/features',
+        badge: '✓',
       },
       {
         id: 'admin-landing',
         title: 'Landing Page',
         icon: MonitorSmartphone,
         path: '/admin/landing',
-      },
-    ],
-  },
-
-  // ----- Sistema -----
-  {
-    id: 'admin-system',
-    title: 'Sistema',
-    items: [
-      {
-        id: 'admin-logs',
-        title: 'Logs',
-        icon: FileText,
-        path: '/admin/logs',
-      },
-      {
-        id: 'admin-health',
-        title: 'Health Check',
-        icon: Activity,
-        path: '/admin/health',
-      },
-      {
-        id: 'admin-database',
-        title: 'Banco de Dados',
-        icon: Database,
-        path: '/admin/database',
-      },
-      {
-        id: 'admin-settings',
-        title: 'Configurações Globais',
-        icon: Settings,
-        path: '/admin/settings',
+        badge: '✓',
       },
     ],
   },
