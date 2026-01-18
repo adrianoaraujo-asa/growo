@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -15,27 +15,14 @@ import {
   Download,
   Eye,
   Edit,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  Link,
-  Image,
-  Code,
-  Quote,
-  Heading1,
-  Heading2,
-  Heading3,
   Loader2,
-  Users
+  Users,
+  Settings,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -44,129 +31,53 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useDocument } from "@/hooks/useDocuments";
+import { useR2Storage } from "@/hooks/useR2Storage";
+import { NotionEditor } from "@/components/docs/NotionEditor";
+import { DocumentPermissions } from "@/components/docs/DocumentPermissions";
+import type { Json } from "@/integrations/supabase/types";
 
-interface DocumentData {
+interface NotionBlock {
   id: string;
-  title: string;
+  type: "paragraph" | "heading1" | "heading2" | "heading3" | "bulletList" | "numberedList" | "checkList" | "quote" | "code" | "divider" | "image" | "table";
   content: string;
-  isFavorite: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: {
-    name: string;
-    avatar?: string;
-  };
-  lastEditedBy: {
-    name: string;
-    avatar?: string;
-  };
-  collaborators: Array<{
-    id: string;
-    name: string;
-    avatar?: string;
-  }>;
+  checked?: boolean;
+  align?: "left" | "center" | "right";
+  imageUrl?: string;
+  tableData?: string[][];
 }
 
-// Mock document data
-const mockDocument: DocumentData = {
-  id: "doc-1",
-  title: "Manual de Onboarding",
-  content: `# Manual de Onboarding
-
-Bem-vindo à equipe! Este manual contém todas as informações necessárias para novos colaboradores.
-
-## Primeiros Passos
-
-1. **Configuração da estação de trabalho**
-   - Solicite seu equipamento ao RH
-   - Configure seu email corporativo
-   - Instale as ferramentas necessárias
-
-2. **Conhecendo a equipe**
-   - Agende uma reunião com seu gestor
-   - Participe da integração semanal
-   - Conheça os colegas do seu time
-
-## Ferramentas e Sistemas
-
-### Comunicação
-- **Slack** - Comunicação interna
-- **Google Meet** - Videoconferências
-- **Email** - Comunicação formal
-
-### Desenvolvimento
-- **GitHub** - Repositório de código
-- **Jira** - Gestão de projetos
-- **Figma** - Design e protótipos
-
-## Políticas Importantes
-
-- Horário flexível (8h às 18h)
-- Home office 2x por semana
-- Dress code casual
-
-## Contatos Úteis
-
-| Departamento | Email |
-|--------------|-------|
-| RH | rh@empresa.com |
-| TI | suporte@empresa.com |
-| Financeiro | financeiro@empresa.com |
-
----
-
-*Última atualização: Janeiro 2026*`,
-  isFavorite: true,
-  createdAt: "2025-05-10T10:00:00Z",
-  updatedAt: "2026-01-15T08:30:00Z",
-  createdBy: {
-    name: "Ana Costa",
-    avatar: "",
-  },
-  lastEditedBy: {
-    name: "João Silva",
-    avatar: "",
-  },
-  collaborators: [
-    { id: "1", name: "Ana Costa", avatar: "" },
-    { id: "2", name: "João Silva", avatar: "" },
-    { id: "3", name: "Maria Santos", avatar: "" },
-  ],
-};
-
-const toolbarButtons = [
-  { icon: Bold, label: "Negrito", markdown: "**" },
-  { icon: Italic, label: "Itálico", markdown: "*" },
-  { icon: Underline, label: "Sublinhado", markdown: "__" },
-  { type: "separator" },
-  { icon: Heading1, label: "Título 1", markdown: "# " },
-  { icon: Heading2, label: "Título 2", markdown: "## " },
-  { icon: Heading3, label: "Título 3", markdown: "### " },
-  { type: "separator" },
-  { icon: List, label: "Lista", markdown: "- " },
-  { icon: ListOrdered, label: "Lista Numerada", markdown: "1. " },
-  { icon: Quote, label: "Citação", markdown: "> " },
-  { type: "separator" },
-  { icon: Link, label: "Link", markdown: "[texto](url)" },
-  { icon: Image, label: "Imagem", markdown: "![alt](url)" },
-  { icon: Code, label: "Código", markdown: "`" },
+const defaultBlocks: NotionBlock[] = [
+  { id: "1", type: "paragraph", content: "" },
 ];
 
 export function DocEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [document, setDocument] = useState<DocumentData>(mockDocument);
-  const [isEditing, setIsEditing] = useState(false);
+  const { document, isLoading, error, updateDocument } = useDocument(id || "");
+  const { uploadFile } = useR2Storage();
+  
+  const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(document.title);
-  const [editedContent, setEditedContent] = useState(document.content);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedContent, setEditedContent] = useState<NotionBlock[]>(defaultBlocks);
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state with document data
+  useEffect(() => {
+    if (document) {
+      setEditedTitle(document.title);
+      if (document.content && Array.isArray(document.content)) {
+        setEditedContent(document.content as unknown as NotionBlock[]);
+      } else {
+        setEditedContent(defaultBlocks);
+      }
+    }
+  }, [document]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pt-BR", {
@@ -187,66 +98,114 @@ export function DocEditorPage() {
       .slice(0, 2);
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (!document) return;
+    
     setIsSaving(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setDocument({
-        ...document,
+      // Calculate plain text content for search
+      const contentText = editedContent
+        .map(block => block.content || "")
+        .join("\n");
+
+      // Calculate word count and reading time
+      const wordCount = contentText.split(/\s+/).filter(Boolean).length;
+      const readingTimeMinutes = Math.ceil(wordCount / 200);
+
+      await updateDocument.mutateAsync({
         title: editedTitle,
-        content: editedContent,
-        updatedAt: new Date().toISOString(),
+        content: editedContent as unknown as Json,
+        content_text: contentText,
+        word_count: wordCount,
+        reading_time_minutes: readingTimeMinutes,
+        excerpt: contentText.substring(0, 200),
       });
-      setIsEditing(false);
+      
       toast.success("Documento salvo!");
     } catch (error) {
+      console.error("Error saving document:", error);
       toast.error("Erro ao salvar documento");
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [document, editedTitle, editedContent, updateDocument]);
 
-  const handleToggleFavorite = () => {
-    setDocument({ ...document, isFavorite: !document.isFavorite });
-    toast.success(
-      document.isFavorite
-        ? "Removido dos favoritos"
-        : "Adicionado aos favoritos"
-    );
-  };
+  const handleToggleFavorite = useCallback(async () => {
+    if (!document) return;
+    
+    try {
+      await updateDocument.mutateAsync({
+        is_favorite: !document.is_favorite,
+      });
+      toast.success(
+        document.is_favorite
+          ? "Removido dos favoritos"
+          : "Adicionado aos favoritos"
+      );
+    } catch (error) {
+      toast.error("Erro ao atualizar favoritos");
+    }
+  }, [document, updateDocument]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Link copiado!");
   };
 
-  const renderMarkdown = (content: string) => {
-    // Simple markdown rendering - in production, use a proper markdown library
-    let html = content
-      // Headers
-      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-6 mb-3">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-8 mb-4">$1</h1>')
-      // Bold and italic
-      .replace(/\*\*\*(.*)\*\*\*/gim, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      // Code
-      .replace(/`([^`]+)`/gim, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
-      // Links
-      .replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" class="text-primary underline">$1</a>')
-      // Lists
-      .replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>')
-      .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 list-decimal">$1</li>')
-      // Blockquotes
-      .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-primary/30 pl-4 italic text-muted-foreground">$1</blockquote>')
-      // Horizontal rule
-      .replace(/^---$/gim, '<hr class="my-4 border-border">')
-      // Line breaks
-      .replace(/\n/gim, '<br>');
+  const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+    setIsUploading(true);
+    try {
+      const result = await uploadFile(file, {
+        documentId: id,
+        folder: `documents/${id}/images`,
+      });
+      toast.success("Imagem enviada!");
+      return result.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Erro ao enviar imagem");
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  }, [uploadFile, id]);
 
-    return html;
-  };
+  const handleContentChange = useCallback((blocks: NotionBlock[]) => {
+    setEditedContent(blocks);
+  }, []);
+
+  // Auto-save every 30 seconds when editing
+  useEffect(() => {
+    if (!isEditing) return;
+    
+    const autoSaveInterval = setInterval(() => {
+      if (document && (editedTitle !== document.title || 
+          JSON.stringify(editedContent) !== JSON.stringify(document.content))) {
+        handleSave();
+      }
+    }, 30000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [isEditing, document, editedTitle, editedContent, handleSave]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error || !document) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-muted-foreground">Documento não encontrado</p>
+        <Button variant="outline" onClick={() => navigate("/docs")}>
+          Voltar para Documentos
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -263,91 +222,93 @@ export function DocEditorPage() {
           </Button>
           {isEditing ? (
             <Input
+              ref={titleInputRef}
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
-              className="text-xl font-semibold w-[400px]"
+              className="text-xl font-semibold w-[400px] border-none bg-transparent focus-visible:ring-1"
+              placeholder="Título do documento..."
             />
           ) : (
             <h1 className="text-2xl font-semibold text-heading">
               {document.title}
             </h1>
           )}
-          {document.isFavorite && !isEditing && (
+          {document.is_favorite && !isEditing && (
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
           )}
         </div>
         <div className="flex items-center gap-2">
-          {isEditing ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditedTitle(document.title);
-                  setEditedContent(document.content);
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                <Save className="w-4 h-4 mr-2" />
-                Salvar
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
-              <Button variant="outline" onClick={handleCopyLink}>
-                <Share2 className="w-4 h-4 mr-2" />
-                Compartilhar
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleToggleFavorite}>
-                    {document.isFavorite ? (
-                      <>
-                        <StarOff className="w-4 h-4 mr-2" />
-                        Remover dos favoritos
-                      </>
-                    ) : (
-                      <>
-                        <Star className="w-4 h-4 mr-2" />
-                        Adicionar aos favoritos
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => navigate(`/docs/${id}/history`)}
-                  >
-                    <History className="w-4 h-4 mr-2" />
-                    Ver histórico
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Duplicar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Download className="w-4 h-4 mr-2" />
-                    Exportar PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+          {isUploading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Enviando imagem...
+            </div>
           )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            Salvar
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={() => setShowPermissions(true)}>
+            <Users className="w-4 h-4 mr-2" />
+            Compartilhar
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleToggleFavorite}>
+                {document.is_favorite ? (
+                  <>
+                    <StarOff className="w-4 h-4 mr-2" />
+                    Remover dos favoritos
+                  </>
+                ) : (
+                  <>
+                    <Star className="w-4 h-4 mr-2" />
+                    Adicionar aos favoritos
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyLink}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Copiar link
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate(`/docs/${id}/history`)}
+              >
+                <History className="w-4 h-4 mr-2" />
+                Ver histórico
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="w-4 h-4 mr-2" />
+                Duplicar
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -355,74 +316,36 @@ export function DocEditorPage() {
       <div className="flex items-center gap-6 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          Atualizado {formatDate(document.updatedAt)}
+          Atualizado {formatDate(document.updated_at)}
         </div>
-        <div className="flex items-center gap-2">
-          <span>por</span>
-          <Avatar className="w-5 h-5">
-            <AvatarImage src={document.lastEditedBy.avatar} />
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {getInitials(document.lastEditedBy.name)}
-            </AvatarFallback>
-          </Avatar>
-          {document.lastEditedBy.name}
-        </div>
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          <div className="flex -space-x-2">
-            {document.collaborators.slice(0, 3).map((collab) => (
-              <Avatar key={collab.id} className="w-6 h-6 border-2 border-background">
-                <AvatarImage src={collab.avatar} />
-                <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                  {getInitials(collab.name)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          {document.collaborators.length} colaboradores
-        </div>
-      </div>
-
-      {/* Editor/Viewer */}
-      <Card className="card-3d min-h-[600px]">
-        {isEditing && (
-          <div className="border-b p-2 flex items-center gap-1 flex-wrap">
-            <TooltipProvider>
-              {toolbarButtons.map((btn, index) =>
-                btn.type === "separator" ? (
-                  <Separator key={index} orientation="vertical" className="h-6 mx-1" />
-                ) : (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        {btn.icon && <btn.icon className="w-4 h-4" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{btn.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              )}
-            </TooltipProvider>
+        {document.word_count && (
+          <div className="flex items-center gap-2">
+            <span>{document.word_count} palavras</span>
+            <span>•</span>
+            <span>{document.reading_time_minutes || 1} min de leitura</span>
           </div>
         )}
-        <CardContent className="p-6">
-          {isEditing ? (
-            <Textarea
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              className="min-h-[500px] font-mono text-sm resize-none border-none focus-visible:ring-0 p-0"
-              placeholder="Digite o conteúdo em Markdown..."
-            />
-          ) : (
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(document.content) }}
-            />
-          )}
+      </div>
+
+      {/* Editor */}
+      <Card className="card-3d min-h-[600px]">
+        <CardContent className="p-0">
+          <NotionEditor
+            initialContent={editedContent}
+            onChange={handleContentChange}
+            readOnly={!isEditing}
+            onImageUpload={handleImageUpload}
+            placeholder="Comece a escrever ou digite '/' para comandos..."
+          />
         </CardContent>
       </Card>
+
+      {/* Permissions Dialog */}
+      <DocumentPermissions
+        documentId={id || ""}
+        open={showPermissions}
+        onOpenChange={setShowPermissions}
+      />
     </motion.div>
   );
 }

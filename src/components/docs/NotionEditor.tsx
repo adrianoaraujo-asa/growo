@@ -22,6 +22,8 @@ import {
   FileText,
   Upload,
   Type,
+  Loader2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -73,8 +75,16 @@ export function NotionEditor({
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPosition, setSlashMenuPosition] = useState({ x: 0, y: 0 });
   const [slashFilter, setSlashFilter] = useState("");
+  const [uploadingBlockId, setUploadingBlockId] = useState<string | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const slashMenuRef = useRef<HTMLDivElement>(null);
+
+  // Sync with initial content changes
+  useEffect(() => {
+    setBlocks(initialContent);
+  }, [initialContent]);
 
   const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -92,11 +102,12 @@ export function NotionEditor({
   );
 
   const addBlockAfter = useCallback(
-    (id: string, type: NotionBlock["type"] = "paragraph") => {
+    (id: string, type: NotionBlock["type"] = "paragraph", extraProps?: Partial<NotionBlock>) => {
       const newBlock: NotionBlock = {
         id: generateId(),
         type,
         content: "",
+        ...extraProps,
       };
       setBlocks((prev) => {
         const index = prev.findIndex((b) => b.id === id);
@@ -112,6 +123,7 @@ export function NotionEditor({
       setTimeout(() => {
         blockRefs.current[newBlock.id]?.focus();
       }, 0);
+      return newBlock.id;
     },
     [onChange]
   );
@@ -158,15 +170,66 @@ export function NotionEditor({
     [addBlockAfter, removeBlock]
   );
 
+  // Handle click outside to close slash menu
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (slashMenuRef.current && !slashMenuRef.current.contains(e.target as Node)) {
+        setShowSlashMenu(false);
+      }
+    };
+
+    if (showSlashMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSlashMenu]);
+
   const handleSlashCommand = useCallback(
-    (type: NotionBlock["type"]) => {
+    async (type: NotionBlock["type"]) => {
       if (activeBlockId) {
-        updateBlock(activeBlockId, { type, content: "" });
+        if (type === "image") {
+          updateBlock(activeBlockId, { type: "image", content: "" });
+          // Trigger file input
+          setTimeout(() => {
+            fileInputRef.current?.click();
+          }, 100);
+        } else {
+          updateBlock(activeBlockId, { type, content: "" });
+        }
       }
       setShowSlashMenu(false);
     },
     [activeBlockId, updateBlock]
   );
+
+  const handleImageFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeBlockId || !onImageUpload) return;
+
+    setUploadingBlockId(activeBlockId);
+    try {
+      const imageUrl = await onImageUpload(file);
+      updateBlock(activeBlockId, { imageUrl });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    } finally {
+      setUploadingBlockId(null);
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [activeBlockId, onImageUpload, updateBlock]);
+
+  const handleImageClick = useCallback((blockId: string) => {
+    if (readOnly) return;
+    setActiveBlockId(blockId);
+    fileInputRef.current?.click();
+  }, [readOnly]);
 
   const slashCommands = [
     { type: "paragraph", icon: Type, label: "Texto", description: "Texto normal" },
@@ -193,7 +256,7 @@ export function NotionEditor({
       ref: (el: HTMLDivElement | null) => {
         blockRefs.current[block.id] = el;
       },
-      contentEditable: !readOnly,
+      contentEditable: !readOnly && block.type !== "divider" && block.type !== "image",
       suppressContentEditableWarning: true,
       onFocus: () => setActiveBlockId(block.id),
       onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => handleKeyDown(e, block),
@@ -289,16 +352,39 @@ export function NotionEditor({
       case "divider":
         return <hr className="my-4 border-border" />;
       case "image":
+        const isUploading = uploadingBlockId === block.id;
         return (
-          <div className="my-4">
-            {block.imageUrl ? (
-              <img
-                src={block.imageUrl}
-                alt={block.content || "Image"}
-                className="max-w-full rounded-lg"
-              />
+          <div className="my-4" onClick={() => handleImageClick(block.id)}>
+            {isUploading ? (
+              <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center">
+                <Loader2 className="w-8 h-8 mx-auto mb-2 text-primary animate-spin" />
+                <p className="text-muted-foreground">Enviando imagem...</p>
+              </div>
+            ) : block.imageUrl ? (
+              <div className="relative group">
+                <img
+                  src={block.imageUrl}
+                  alt={block.content || "Image"}
+                  className="max-w-full rounded-lg"
+                />
+                {!readOnly && (
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeBlock(block.id);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center">
+              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-muted-foreground">Clique para fazer upload</p>
               </div>
@@ -316,6 +402,15 @@ export function NotionEditor({
 
   return (
     <div ref={editorRef} className="relative min-h-[400px] p-4">
+      {/* Hidden file input for image uploads */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageFileSelect}
+      />
+
       {blocks.map((block) => (
         <div
           key={block.id}
@@ -324,7 +419,7 @@ export function NotionEditor({
             activeBlockId === block.id && "bg-accent/30 -mx-2 px-2 rounded"
           )}
         >
-          {/* Block handle (optional) */}
+          {/* Block handle */}
           {!readOnly && (
             <div className="absolute -left-8 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -346,6 +441,7 @@ export function NotionEditor({
       {/* Slash command menu */}
       {showSlashMenu && (
         <div
+          ref={slashMenuRef}
           className="fixed z-50 bg-popover border rounded-lg shadow-lg p-1 min-w-[250px]"
           style={{ left: slashMenuPosition.x, top: slashMenuPosition.y }}
         >
@@ -355,6 +451,13 @@ export function NotionEditor({
             placeholder="Filtrar..."
             className="mb-2"
             autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setShowSlashMenu(false);
+              } else if (e.key === "Enter" && filteredCommands.length > 0) {
+                handleSlashCommand(filteredCommands[0].type);
+              }
+            }}
           />
           <div className="max-h-[300px] overflow-y-auto">
             {filteredCommands.map((cmd) => (
