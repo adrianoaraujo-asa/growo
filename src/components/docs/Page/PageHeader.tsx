@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { R2Image } from "@/components/docs/R2Image";
 
 interface PageHeaderProps {
   title: string;
@@ -55,7 +56,7 @@ export function PageHeader({
       {/* Cover Image */}
       {coverUrl && (
         <div className="relative h-48 w-full overflow-hidden">
-          <img
+          <R2Image
             src={coverUrl}
             alt="Cover"
             className="w-full h-full object-cover"
