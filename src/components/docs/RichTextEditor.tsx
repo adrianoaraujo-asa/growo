@@ -685,7 +685,7 @@ export function RichTextEditor({
       {/* Editor content */}
       <div 
         ref={editorRef} 
-        className="flex-1 p-6 overflow-auto"
+        className="flex-1 p-6"
         onPaste={handlePaste}
       >
         <input

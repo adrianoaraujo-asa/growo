@@ -459,7 +459,7 @@ export function NotionEditor({
               }
             }}
           />
-          <div className="max-h-[300px] overflow-y-auto">
+          <div>
             {filteredCommands.map((cmd) => (
               <button
                 key={cmd.type}

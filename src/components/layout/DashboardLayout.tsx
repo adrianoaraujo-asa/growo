@@ -29,8 +29,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Navbar - Fixed at top */}
         <AppNavbar />
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Content */}
+        <div className="flex-1">
           {/* Page Content with Animation */}
           <main className={cn(
             "flex-1 p-6",

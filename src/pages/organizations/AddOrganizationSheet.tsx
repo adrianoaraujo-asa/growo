@@ -110,7 +110,7 @@ export function AddOrganizationSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto">
+      <SheetContent className="sm:max-w-lg">
         <SheetHeader className="border-b pb-4">
           <SheetTitle>
             {isEditing ? "Editar Organização" : "Nova Organização"}

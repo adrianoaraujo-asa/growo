@@ -420,7 +420,7 @@ function WebhookForm({ onClose }: WebhookFormProps) {
 
       <div className="space-y-3">
         <Label>Eventos *</Label>
-        <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto border rounded-lg p-3">
+        <div className="grid grid-cols-2 gap-2 border rounded-lg p-3">
           {availableEvents.map((event) => (
             <div key={event.id} className="flex items-center space-x-2">
               <Checkbox

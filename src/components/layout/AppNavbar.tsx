@@ -123,7 +123,7 @@ export function AppNavbar() {
               <Badge variant="secondary">4 novas</Badge>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <div className="max-h-[300px] overflow-y-auto">
+            <div>
               {[1, 2, 3, 4].map((i) => (
                 <DropdownMenuItem key={i} className="flex items-start gap-3 p-3 cursor-pointer">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
