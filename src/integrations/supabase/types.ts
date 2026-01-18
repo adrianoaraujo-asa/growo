@@ -1122,6 +1122,21 @@ export type Database = {
           value: Json
         }[]
       }
+      get_storage_config: {
+        Args: { p_organization_id?: string }
+        Returns: {
+          access_key_id: string
+          account_id: string
+          bucket_name: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          provider: string
+          public_url: string
+          secret_access_key: string
+        }[]
+      }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -1132,6 +1147,18 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      upsert_storage_config: {
+        Args: {
+          p_access_key_id?: string
+          p_account_id?: string
+          p_bucket_name?: string
+          p_endpoint?: string
+          p_organization_id?: string
+          p_public_url?: string
+          p_secret_access_key?: string
+        }
+        Returns: string
+      }
       user_belongs_to_org: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
