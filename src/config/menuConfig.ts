@@ -1,15 +1,10 @@
 import {
   LayoutDashboard,
   FileText,
-  Settings,
   Building2,
-  MapPin,
-  Phone,
   CreditCard,
-  Receipt,
   Users,
   Webhook,
-  Key,
   Sliders,
   User,
   Shield,
@@ -23,14 +18,6 @@ import {
   BarChart3,
   Briefcase,
   UserCog,
-  LogIn,
-  UserPlus,
-  KeyRound,
-  Mail,
-  CheckCircle,
-  Globe,
-  FileCheck,
-  ShieldCheck,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
@@ -60,7 +47,7 @@ export const menuConfig: MenuSection[] = [
   },
   
   // =====================================
-  // DOCUMENTOS (WIKI) - Novo módulo core
+  // DOCUMENTOS (WIKI)
   // =====================================
   {
     id: 'docs',
@@ -78,8 +65,7 @@ export const menuConfig: MenuSection[] = [
   },
 
   // =====================================
-  // MÓDULOS DO SAAS (Slot para cada vertical)
-  // Estes itens são específicos do growo.app
+  // MÓDULOS DO SAAS (growo.app)
   // =====================================
   {
     id: 'apps',
@@ -227,156 +213,6 @@ export const menuConfig: MenuSection[] = [
   },
 
   // =====================================
-  // PÁGINAS PÚBLICAS
-  // =====================================
-  {
-    id: 'public-pages',
-    title: 'Páginas Públicas',
-    items: [
-      {
-        id: 'landing',
-        title: 'Landing Page',
-        icon: Globe,
-        path: '/',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'terms',
-        title: 'Termos de Uso',
-        icon: FileCheck,
-        path: '/terms',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'privacy',
-        title: 'Privacidade',
-        icon: ShieldCheck,
-        path: '/privacy',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-    ],
-  },
-
-  // =====================================
-  // AUTENTICAÇÃO (para referência)
-  // =====================================
-  {
-    id: 'auth-pages',
-    title: 'Autenticação',
-    items: [
-      {
-        id: 'login',
-        title: 'Login',
-        icon: LogIn,
-        path: '/auth/login',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'register',
-        title: 'Cadastro',
-        icon: UserPlus,
-        path: '/auth/register',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'forgot-password',
-        title: 'Esqueci Senha',
-        icon: KeyRound,
-        path: '/auth/forgot-password',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'reset-password',
-        title: 'Redefinir Senha',
-        icon: KeyRound,
-        path: '/auth/reset-password',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'verify-email',
-        title: 'Verificar Email',
-        icon: Mail,
-        path: '/auth/verify-email',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'two-steps',
-        title: '2FA',
-        icon: Shield,
-        path: '/auth/two-steps',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-    ],
-  },
-
-  // =====================================
-  // SIGNUP (fluxo de cadastro)
-  // =====================================
-  {
-    id: 'signup-flow',
-    title: 'Signup Flow',
-    items: [
-      {
-        id: 'signup-credentials',
-        title: '1. Credenciais',
-        icon: UserPlus,
-        path: '/signup',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'signup-verify',
-        title: '2. Verificação',
-        icon: CheckCircle,
-        path: '/signup/verify',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'signup-profile',
-        title: '3. Perfil',
-        icon: User,
-        path: '/signup/profile',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'signup-organization',
-        title: '4. Organização',
-        icon: Building2,
-        path: '/signup/organization',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'signup-plan',
-        title: '5. Plano',
-        icon: CreditCard,
-        path: '/signup/plan',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-      {
-        id: 'signup-checkout',
-        title: '6. Checkout',
-        icon: Receipt,
-        path: '/signup/checkout',
-        badge: '✓',
-        badgeColor: 'success',
-      },
-    ],
-  },
-
-  // =====================================
   // AJUDA E SUPORTE
   // =====================================
   {
@@ -398,6 +234,7 @@ export const menuConfig: MenuSection[] = [
     ],
   },
 ];
+
 // =====================================
 // MENU ADMINISTRATIVO (Super Admin)
 // =====================================
@@ -429,6 +266,8 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Planos',
         icon: CreditCard,
         path: '/admin/plans',
+        badge: '✓',
+        badgeColor: 'success',
       },
       {
         id: 'admin-features',
@@ -441,6 +280,8 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Landing Page',
         icon: MonitorSmartphone,
         path: '/admin/landing',
+        badge: '✓',
+        badgeColor: 'success',
       },
       {
         id: 'admin-logs',
