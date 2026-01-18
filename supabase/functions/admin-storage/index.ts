@@ -96,6 +96,7 @@ serve(async (req) => {
         }
 
         const { data, error } = await supabaseAdmin.rpc('upsert_storage_config', {
+          p_user_id: user.id,
           p_organization_id: null, // Global config
           p_account_id: accountId || null,
           p_bucket_name: bucketName,
