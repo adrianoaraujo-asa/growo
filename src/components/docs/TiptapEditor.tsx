@@ -67,84 +67,180 @@ export interface TiptapEditorRef {
   getEditor: () => Editor | null;
 }
 
-// Markdown paste extension
+// Improved Markdown to HTML parser
 function parseMarkdownToHtml(markdown: string): string {
-  let html = markdown;
+  // Normalize line endings
+  let text = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  
+  // Split into blocks by double newlines
+  const blocks = text.split(/\n\n+/);
+  const htmlBlocks: string[] = [];
+  
+  for (let block of blocks) {
+    block = block.trim();
+    if (!block) continue;
+    
+    // Code blocks
+    if (block.startsWith('```')) {
+      const match = block.match(/^```(\w*)?\n?([\s\S]*?)```$/);
+      if (match) {
+        htmlBlocks.push(`<pre><code>${escapeHtml(match[2])}</code></pre>`);
+        continue;
+      }
+    }
+    
+    // Headers
+    const headerMatch = block.match(/^(#{1,6})\s+(.+)$/m);
+    if (headerMatch && block.split('\n').length === 1) {
+      const level = headerMatch[1].length;
+      htmlBlocks.push(`<h${level}>${parseInlineMarkdown(headerMatch[2])}</h${level}>`);
+      continue;
+    }
+    
+    // Horizontal rule
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(block)) {
+      htmlBlocks.push('<hr />');
+      continue;
+    }
+    
+    // Blockquote
+    if (block.startsWith('> ')) {
+      const quoteContent = block
+        .split('\n')
+        .map(line => line.replace(/^>\s?/, ''))
+        .join('\n');
+      htmlBlocks.push(`<blockquote><p>${parseInlineMarkdown(quoteContent)}</p></blockquote>`);
+      continue;
+    }
+    
+    // Lists (unordered, ordered, task)
+    const lines = block.split('\n');
+    const firstLine = lines[0];
+    
+    // Task list
+    if (/^[-*+]\s+\[[ xX]\]/.test(firstLine)) {
+      const items = lines.map(line => {
+        const match = line.match(/^[-*+]\s+\[([xX ])\]\s*(.*)$/);
+        if (match) {
+          const checked = match[1].toLowerCase() === 'x';
+          return `<li data-type="taskItem" data-checked="${checked}">${parseInlineMarkdown(match[2])}</li>`;
+        }
+        return '';
+      }).filter(Boolean);
+      htmlBlocks.push(`<ul data-type="taskList">${items.join('')}</ul>`);
+      continue;
+    }
+    
+    // Unordered list
+    if (/^[-*+]\s+/.test(firstLine)) {
+      const items = lines.map(line => {
+        const match = line.match(/^[-*+]\s+(.*)$/);
+        if (match) {
+          return `<li>${parseInlineMarkdown(match[1])}</li>`;
+        }
+        return '';
+      }).filter(Boolean);
+      htmlBlocks.push(`<ul>${items.join('')}</ul>`);
+      continue;
+    }
+    
+    // Ordered list
+    if (/^\d+\.\s+/.test(firstLine)) {
+      const items = lines.map(line => {
+        const match = line.match(/^\d+\.\s+(.*)$/);
+        if (match) {
+          return `<li>${parseInlineMarkdown(match[1])}</li>`;
+        }
+        return '';
+      }).filter(Boolean);
+      htmlBlocks.push(`<ol>${items.join('')}</ol>`);
+      continue;
+    }
+    
+    // Multi-line paragraph - join lines and parse
+    const paragraphLines = lines.map(line => {
+      // Check if line is a header within a block
+      const lineHeaderMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (lineHeaderMatch) {
+        const level = lineHeaderMatch[1].length;
+        return `</p><h${level}>${parseInlineMarkdown(lineHeaderMatch[2])}</h${level}><p>`;
+      }
+      return parseInlineMarkdown(line);
+    });
+    
+    let paragraphHtml = paragraphLines.join('<br />');
+    // Clean up empty paragraphs
+    paragraphHtml = paragraphHtml.replace(/<p><\/p>/g, '');
+    if (paragraphHtml.startsWith('</p>')) {
+      paragraphHtml = paragraphHtml.substring(4);
+    }
+    if (paragraphHtml.endsWith('<p>')) {
+      paragraphHtml = paragraphHtml.substring(0, paragraphHtml.length - 3);
+    }
+    
+    if (!paragraphHtml.startsWith('<h') && !paragraphHtml.startsWith('<')) {
+      htmlBlocks.push(`<p>${paragraphHtml}</p>`);
+    } else {
+      htmlBlocks.push(paragraphHtml);
+    }
+  }
+  
+  return htmlBlocks.join('');
+}
 
-  // Code blocks (must be first)
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
-  // Headers
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-  // Bold and italic
+function parseInlineMarkdown(text: string): string {
+  let html = text;
+  
+  // Bold and italic combined
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
   html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+  
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
-  html = html.replace(/_(.+?)_/g, '<em>$1</em>');
-
+  
+  // Italic
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+  
   // Strikethrough
   html = html.replace(/~~(.+?)~~/g, '<s>$1</s>');
-
-  // Inline code
+  
+  // Inline code (be careful not to match code blocks)
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
+  
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
+  
   // Images
   html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />');
-
-  // Blockquotes
-  html = html.replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>');
-
-  // Horizontal rules
-  html = html.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr />');
-
-  // Task lists
-  html = html.replace(/^- \[x\] (.+)$/gm, '<ul data-type="taskList"><li data-type="taskItem" data-checked="true">$1</li></ul>');
-  html = html.replace(/^- \[ \] (.+)$/gm, '<ul data-type="taskList"><li data-type="taskItem" data-checked="false">$1</li></ul>');
-
-  // Unordered lists
-  html = html.replace(/^[-*+] (.+)$/gm, '<ul><li>$1</li></ul>');
-
-  // Ordered lists
-  html = html.replace(/^\d+\. (.+)$/gm, '<ol><li>$1</li></ol>');
-
-  // Paragraphs (lines that aren't already wrapped)
-  const lines = html.split('\n');
-  html = lines.map(line => {
-    const trimmed = line.trim();
-    if (!trimmed) return '';
-    if (
-      trimmed.startsWith('<h') ||
-      trimmed.startsWith('<ul') ||
-      trimmed.startsWith('<ol') ||
-      trimmed.startsWith('<li') ||
-      trimmed.startsWith('<blockquote') ||
-      trimmed.startsWith('<pre') ||
-      trimmed.startsWith('<hr') ||
-      trimmed.startsWith('<img')
-    ) {
-      return line;
-    }
-    return `<p>${line}</p>`;
-  }).join('');
-
-  // Merge consecutive lists
-  html = html.replace(/<\/ul>\s*<ul>/g, '');
-  html = html.replace(/<\/ol>\s*<ol>/g, '');
-  html = html.replace(/<\/ul data-type="taskList">\s*<ul data-type="taskList">/g, '');
-
+  
   return html;
 }
 
 function isMarkdown(text: string): boolean {
-  return /^#{1,6} |^\*{1,2}|^_{1,2}|^-{3,}|^```|^> |^[-*+] |^\d+\. |^\[.+\]\(.+\)|!\[.+\]\(.+\)|~~.+~~/m.test(text);
+  // Check if the text contains common Markdown patterns
+  const patterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*[^*]+\*\*/,         // Bold with **
+    /__[^_]+__/,             // Bold with __
+    /^[-*+]\s+/m,            // Unordered list
+    /^\d+\.\s+/m,            // Ordered list
+    /^>\s+/m,                // Blockquote
+    /^```/m,                 // Code block
+    /\[.+?\]\(.+?\)/,        // Links
+    /^-{3,}$/m,              // Horizontal rule
+    /^[-*+]\s+\[[ xX]\]/m,   // Task list
+  ];
+  
+  return patterns.some(pattern => pattern.test(text));
 }
 
 const ToolbarButton = ({
