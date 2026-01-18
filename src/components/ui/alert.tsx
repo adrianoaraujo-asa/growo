@@ -4,12 +4,33 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-9 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
-        destructive: "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        // Default with neutral styling
+        default: "bg-background text-foreground border-border [&>svg]:text-foreground",
+        
+        // Solid variants (Sneat alert-solid-*)
+        primary: "bg-primary text-primary-foreground border-primary [&>svg]:text-primary-foreground",
+        success: "bg-success text-success-foreground border-success [&>svg]:text-success-foreground",
+        warning: "bg-warning text-warning-foreground border-warning [&>svg]:text-warning-foreground",
+        destructive: "bg-destructive text-destructive-foreground border-destructive [&>svg]:text-destructive-foreground",
+        info: "bg-info text-info-foreground border-info [&>svg]:text-info-foreground",
+        
+        // Soft variants (light background with colored text)
+        "soft-primary": "bg-primary/10 text-primary border-primary/20 [&>svg]:text-primary",
+        "soft-success": "bg-success/10 text-success border-success/20 [&>svg]:text-success",
+        "soft-warning": "bg-warning/10 text-warning border-warning/20 [&>svg]:text-warning",
+        "soft-destructive": "bg-destructive/10 text-destructive border-destructive/20 [&>svg]:text-destructive",
+        "soft-info": "bg-info/10 text-info border-info/20 [&>svg]:text-info",
+        
+        // Outline variants (border only)
+        "outline-primary": "bg-transparent text-primary border-primary [&>svg]:text-primary",
+        "outline-success": "bg-transparent text-success border-success [&>svg]:text-success",
+        "outline-warning": "bg-transparent text-warning border-warning [&>svg]:text-warning",
+        "outline-destructive": "bg-transparent text-destructive border-destructive [&>svg]:text-destructive",
+        "outline-info": "bg-transparent text-info border-info [&>svg]:text-info",
       },
     },
     defaultVariants: {
@@ -40,4 +61,4 @@ const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttrib
 );
 AlertDescription.displayName = "AlertDescription";
 
-export { Alert, AlertTitle, AlertDescription };
+export { Alert, AlertTitle, AlertDescription, alertVariants };
