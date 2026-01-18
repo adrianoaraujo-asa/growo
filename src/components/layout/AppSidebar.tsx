@@ -56,15 +56,13 @@ const footerVariants = {
 export function AppSidebar() {
   const { 
     sidebarCollapsed, 
-    sidebarHover,
     setSidebarCollapsed,
-    setSidebarHover 
   } = useLayoutStore();
   
   const { isSuperAdmin } = useUserRole();
   const { logo } = useAppLogo();
 
-  const isCollapsed = sidebarCollapsed && !sidebarHover;
+  const isCollapsed = sidebarCollapsed;
   
   // Combine menus: client menu + admin menu (if superadmin)
   const activeMenuSections = isSuperAdmin 
@@ -96,8 +94,6 @@ export function AppSidebar() {
         initial={false}
         animate={isCollapsed ? "collapsed" : "expanded"}
         variants={sidebarVariants}
-        onMouseEnter={() => sidebarCollapsed && setSidebarHover(true)}
-        onMouseLeave={() => setSidebarHover(false)}
       >
         {/* Logo Section */}
         <div className={cn(

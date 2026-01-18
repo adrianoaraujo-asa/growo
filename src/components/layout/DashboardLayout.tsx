@@ -12,12 +12,10 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { contentWidth, sidebarCollapsed, sidebarHover } = useLayoutStore();
+  const { contentWidth } = useLayoutStore();
   
   // Initialize theme on mount
   useTheme();
-
-  const isCollapsed = sidebarCollapsed && !sidebarHover;
 
   return (
     <div className="h-screen flex w-full bg-background overflow-hidden">
