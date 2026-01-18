@@ -28,21 +28,9 @@ import {
 import { toast } from "sonner";
 import { useDocument } from "@/hooks/useDocuments";
 import { useR2Storage } from "@/hooks/useR2Storage";
-import { SimpleEditor } from "@/components/docs/SimpleEditor";
+import { TiptapEditor, TiptapEditorRef } from "@/components/docs/TiptapEditor";
 import { DocumentPermissions } from "@/components/docs/DocumentPermissions";
 import type { Json } from "@/integrations/supabase/types";
-
-interface ContentBlock {
-  id: string;
-  type: "paragraph" | "heading1" | "heading2" | "heading3" | "bulletList" | "numberedList" | "checkList" | "quote" | "code" | "divider" | "image";
-  content: string;
-  checked?: boolean;
-  imageUrl?: string;
-}
-
-const defaultBlocks: ContentBlock[] = [
-  { id: "1", type: "paragraph", content: "" },
-];
 
 export function DocEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -52,20 +40,34 @@ export function DocEditorPage() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
-  const [editedContent, setEditedContent] = useState<ContentBlock[]>(defaultBlocks);
+  const [editedHtml, setEditedHtml] = useState("");
+  const [editedText, setEditedText] = useState("");
   const [showPermissions, setShowPermissions] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<TiptapEditorRef>(null);
 
   // Sync state with document data
   useEffect(() => {
     if (document) {
       setEditedTitle(document.title);
-      if (document.content && Array.isArray(document.content)) {
-        setEditedContent(document.content as unknown as ContentBlock[]);
+      // Handle both HTML string content and legacy block content
+      if (document.content) {
+        if (typeof document.content === "string") {
+          setEditedHtml(document.content);
+        } else if (Array.isArray(document.content)) {
+          // Convert legacy blocks to HTML
+          const html = convertBlocksToHtml(document.content as unknown as LegacyBlock[]);
+          setEditedHtml(html);
+        } else {
+          setEditedHtml("<p></p>");
+        }
       } else {
-        setEditedContent(defaultBlocks);
+        setEditedHtml("<p></p>");
+      }
+      if (document.content_text) {
+        setEditedText(document.content_text);
       }
     }
   }, [document]);
@@ -85,20 +87,16 @@ export function DocEditorPage() {
     
     setIsSaving(true);
     try {
-      const contentText = editedContent
-        .map(block => block.content || "")
-        .join("\n");
-
-      const wordCount = contentText.split(/\s+/).filter(Boolean).length;
+      const wordCount = editedText.split(/\s+/).filter(Boolean).length;
       const readingTimeMinutes = Math.ceil(wordCount / 200);
 
       await updateDocument.mutateAsync({
         title: editedTitle,
-        content: editedContent as unknown as Json,
-        content_text: contentText,
+        content: editedHtml as unknown as Json,
+        content_text: editedText,
         word_count: wordCount,
         reading_time_minutes: readingTimeMinutes,
-        excerpt: contentText.substring(0, 200),
+        excerpt: editedText.substring(0, 200),
       });
       
       toast.success("Documento salvo!");
@@ -108,7 +106,7 @@ export function DocEditorPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [document, editedTitle, editedContent, updateDocument]);
+  }, [document, editedTitle, editedHtml, editedText, updateDocument]);
 
   const handleToggleFavorite = useCallback(async () => {
     if (!document) return;
@@ -150,21 +148,24 @@ export function DocEditorPage() {
     }
   }, [uploadFile, id]);
 
-  const handleContentChange = useCallback((blocks: ContentBlock[]) => {
-    setEditedContent(blocks);
+  const handleContentChange = useCallback((html: string, text: string) => {
+    setEditedHtml(html);
+    setEditedText(text);
   }, []);
 
   // Auto-save every 30 seconds
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
-      if (document && (editedTitle !== document.title || 
-          JSON.stringify(editedContent) !== JSON.stringify(document.content))) {
-        handleSave();
+      if (document) {
+        const currentContent = typeof document.content === "string" ? document.content : "";
+        if (editedTitle !== document.title || editedHtml !== currentContent) {
+          handleSave();
+        }
       }
     }, 30000);
 
     return () => clearInterval(autoSaveInterval);
-  }, [document, editedTitle, editedContent, handleSave]);
+  }, [document, editedTitle, editedHtml, handleSave]);
 
   if (isLoading) {
     return (
@@ -293,13 +294,14 @@ export function DocEditorPage() {
       </div>
 
       {/* Editor */}
-      <Card variant="flat" className="min-h-[600px]">
-        <CardContent className="p-0">
-          <SimpleEditor
-            initialContent={editedContent}
+      <Card variant="flat" className="min-h-[600px] overflow-hidden">
+        <CardContent className="p-0 h-full">
+          <TiptapEditor
+            ref={editorRef}
+            content={editedHtml}
             onChange={handleContentChange}
             onImageUpload={handleImageUpload}
-            placeholder="Comece a escrever ou pressione Enter para novo bloco..."
+            placeholder="Comece a escrever... (Cole Markdown para conversão automática)"
           />
         </CardContent>
       </Card>
@@ -312,4 +314,47 @@ export function DocEditorPage() {
       />
     </div>
   );
+}
+
+// Legacy block type for backwards compatibility
+interface LegacyBlock {
+  id: string;
+  type: string;
+  content: string;
+  checked?: boolean;
+  imageUrl?: string;
+}
+
+// Convert legacy block format to HTML
+function convertBlocksToHtml(blocks: LegacyBlock[]): string {
+  if (!blocks || blocks.length === 0) return "<p></p>";
+  
+  return blocks.map(block => {
+    const content = block.content || "";
+    
+    switch (block.type) {
+      case "heading1":
+        return `<h1>${content}</h1>`;
+      case "heading2":
+        return `<h2>${content}</h2>`;
+      case "heading3":
+        return `<h3>${content}</h3>`;
+      case "bulletList":
+        return `<ul><li>${content}</li></ul>`;
+      case "numberedList":
+        return `<ol><li>${content}</li></ol>`;
+      case "checkList":
+        return `<ul data-type="taskList"><li data-type="taskItem" data-checked="${block.checked ? "true" : "false"}">${content}</li></ul>`;
+      case "quote":
+        return `<blockquote><p>${content}</p></blockquote>`;
+      case "code":
+        return `<pre><code>${content}</code></pre>`;
+      case "divider":
+        return "<hr />";
+      case "image":
+        return block.imageUrl ? `<img src="${block.imageUrl}" alt="${content}" />` : "";
+      default:
+        return `<p>${content}</p>`;
+    }
+  }).join("");
 }
