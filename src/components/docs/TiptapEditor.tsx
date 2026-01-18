@@ -69,6 +69,24 @@ export interface TiptapEditorRef {
   getMarkdown: () => string;
 }
 
+// Detect if text contains Markdown syntax
+function isMarkdownContent(text: string): boolean {
+  const patterns = [
+    /^#{1,6}\s+/m,           // Headers
+    /\*\*[^*]+\*\*/,         // Bold with **
+    /__[^_]+__/,             // Bold with __
+    /^[-*+]\s+/m,            // Unordered list
+    /^\d+\.\s+/m,            // Ordered list
+    /^>\s+/m,                // Blockquote
+    /^```/m,                 // Code block
+    /\[.+?\]\(.+?\)/,        // Links
+    /^-{3,}$/m,              // Horizontal rule
+    /^[-*+]\s+\[[ xX]\]/m,   // Task list
+  ];
+  
+  return patterns.some(pattern => pattern.test(text));
+}
+
 const ToolbarButton = ({
   onClick,
   isActive = false,
@@ -246,7 +264,16 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
             "[&_img]:my-4"
           ),
         },
-        // Markdown extension handles paste automatically via transformPastedText
+        handlePaste: (view, event) => {
+          const text = event.clipboardData?.getData("text/plain");
+          if (text && isMarkdownContent(text)) {
+            event.preventDefault();
+            // Use the Markdown extension's native parsing
+            editor?.commands.insertContent(text, { contentType: 'markdown' });
+            return true;
+          }
+          return false;
+        },
       },
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();
