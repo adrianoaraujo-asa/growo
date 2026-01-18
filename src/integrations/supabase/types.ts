@@ -634,6 +634,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_settings: {
+        Args: { p_keys: string[] }
+        Returns: {
+          created_at: string
+          id: string
+          is_public: boolean
+          key: string
+          updated_at: string
+          value: Json
+        }[]
+      }
       admin_update_plan: {
         Args: {
           p_currency?: string
@@ -657,6 +668,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_upsert_setting: {
+        Args: { p_is_public?: boolean; p_key: string; p_value: Json }
+        Returns: {
+          id: string
+          key: string
+          value: Json
+        }[]
       }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       has_role: {
