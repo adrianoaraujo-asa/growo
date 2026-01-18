@@ -600,6 +600,64 @@ export type Database = {
       }
     }
     Functions: {
+      admin_create_plan: {
+        Args: {
+          p_currency?: string
+          p_description?: string
+          p_features?: Json
+          p_is_active?: boolean
+          p_is_public?: boolean
+          p_limits?: Json
+          p_name: string
+          p_price_monthly?: number
+          p_price_yearly?: number
+          p_slug: string
+          p_sort_order?: number
+          p_trial_days?: number
+        }
+        Returns: unknown
+        SetofOptions: {
+          from: "*"
+          to: "plans"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_delete_plan: { Args: { p_id: string }; Returns: boolean }
+      admin_list_plans: {
+        Args: never
+        Returns: unknown[]
+        SetofOptions: {
+          from: "*"
+          to: "plans"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_update_plan: {
+        Args: {
+          p_currency?: string
+          p_description?: string
+          p_features?: Json
+          p_id: string
+          p_is_active?: boolean
+          p_is_public?: boolean
+          p_limits?: Json
+          p_name?: string
+          p_price_monthly?: number
+          p_price_yearly?: number
+          p_slug?: string
+          p_sort_order?: number
+          p_trial_days?: number
+        }
+        Returns: unknown
+        SetofOptions: {
+          from: "*"
+          to: "plans"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_user_organization: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
