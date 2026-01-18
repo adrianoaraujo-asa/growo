@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { 
   ArrowLeft,
   Save,
@@ -13,17 +12,12 @@ import {
   Trash2,
   Copy,
   Download,
-  Eye,
-  Edit,
   Loader2,
   Users,
-  Settings,
-  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +28,17 @@ import {
 import { toast } from "sonner";
 import { useDocument } from "@/hooks/useDocuments";
 import { useR2Storage } from "@/hooks/useR2Storage";
-import { RichTextEditor, type ContentBlock } from "@/components/docs/RichTextEditor";
+import { SimpleEditor } from "@/components/docs/SimpleEditor";
 import { DocumentPermissions } from "@/components/docs/DocumentPermissions";
 import type { Json } from "@/integrations/supabase/types";
+
+interface ContentBlock {
+  id: string;
+  type: "paragraph" | "heading1" | "heading2" | "heading3" | "bulletList" | "numberedList" | "checkList" | "quote" | "code" | "divider" | "image";
+  content: string;
+  checked?: boolean;
+  imageUrl?: string;
+}
 
 const defaultBlocks: ContentBlock[] = [
   { id: "1", type: "paragraph", content: "" },
@@ -48,7 +50,6 @@ export function DocEditorPage() {
   const { document, isLoading, error, updateDocument } = useDocument(id || "");
   const { uploadFile } = useR2Storage();
   
-  const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState<ContentBlock[]>(defaultBlocks);
@@ -79,26 +80,15 @@ export function DocEditorPage() {
     });
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const handleSave = useCallback(async () => {
     if (!document) return;
     
     setIsSaving(true);
     try {
-      // Calculate plain text content for search
       const contentText = editedContent
         .map(block => block.content || "")
         .join("\n");
 
-      // Calculate word count and reading time
       const wordCount = contentText.split(/\s+/).filter(Boolean).length;
       const readingTimeMinutes = Math.ceil(wordCount / 200);
 
@@ -164,10 +154,8 @@ export function DocEditorPage() {
     setEditedContent(blocks);
   }, []);
 
-  // Auto-save every 30 seconds when editing
+  // Auto-save every 30 seconds
   useEffect(() => {
-    if (!isEditing) return;
-    
     const autoSaveInterval = setInterval(() => {
       if (document && (editedTitle !== document.title || 
           JSON.stringify(editedContent) !== JSON.stringify(document.content))) {
@@ -176,7 +164,7 @@ export function DocEditorPage() {
     }, 30000);
 
     return () => clearInterval(autoSaveInterval);
-  }, [isEditing, document, editedTitle, editedContent, handleSave]);
+  }, [document, editedTitle, editedContent, handleSave]);
 
   if (isLoading) {
     return (
@@ -198,32 +186,21 @@ export function DocEditorPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/docs")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          {isEditing ? (
-            <Input
-              ref={titleInputRef}
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              className="text-xl font-semibold w-[400px] border-none bg-transparent focus-visible:ring-1"
-              placeholder="Título do documento..."
-            />
-          ) : (
-            <h1 className="text-2xl font-semibold text-heading">
-              {document.title}
-            </h1>
-          )}
-          {document.is_favorite && !isEditing && (
+          <Input
+            ref={titleInputRef}
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            className="text-xl font-semibold w-[400px] border-none bg-transparent focus-visible:ring-1"
+            placeholder="Título do documento..."
+          />
+          {document.is_favorite && (
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
           )}
         </div>
@@ -278,9 +255,7 @@ export function DocEditorPage() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Copiar link
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate(`/docs/${id}/history`)}
-              >
+              <DropdownMenuItem onClick={() => navigate(`/docs/${id}/history`)}>
                 <History className="w-4 h-4 mr-2" />
                 Ver histórico
               </DropdownMenuItem>
@@ -318,14 +293,13 @@ export function DocEditorPage() {
       </div>
 
       {/* Editor */}
-      <Card className="card-3d min-h-[600px]">
+      <Card variant="flat" className="min-h-[600px]">
         <CardContent className="p-0">
-          <RichTextEditor
+          <SimpleEditor
             initialContent={editedContent}
             onChange={handleContentChange}
-            readOnly={!isEditing}
             onImageUpload={handleImageUpload}
-            placeholder="Comece a escrever ou digite '/' para comandos..."
+            placeholder="Comece a escrever ou pressione Enter para novo bloco..."
           />
         </CardContent>
       </Card>
@@ -336,6 +310,6 @@ export function DocEditorPage() {
         open={showPermissions}
         onOpenChange={setShowPermissions}
       />
-    </motion.div>
+    </div>
   );
 }
