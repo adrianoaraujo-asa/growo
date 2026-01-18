@@ -499,7 +499,7 @@ export type Database = {
           id: string
           is_default: boolean | null
           name: string
-          organization_id: string
+          organization_id: string | null
           settings: Json | null
           updated_at: string
         }
@@ -512,7 +512,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
-          organization_id: string
+          organization_id?: string | null
           settings?: Json | null
           updated_at?: string
         }
@@ -525,7 +525,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
-          organization_id?: string
+          organization_id?: string | null
           settings?: Json | null
           updated_at?: string
         }

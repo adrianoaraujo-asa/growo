@@ -49,9 +49,8 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { useCurrentOrganization, useEnsureDefaultWorkspace } from "@/hooks/useCurrentOrganization";
+import { useWorkspaceAccess } from "@/hooks/useWorkspaceAccess";
 import { 
-  useDocumentWorkspaces, 
   useDocumentFolders, 
   useDocuments, 
   useCreateFolder 
@@ -63,7 +62,7 @@ type Document = Database["public"]["Tables"]["documents"]["Row"];
 
 export function DocsPage() {
   const navigate = useNavigate();
-  const { data: organization, isLoading: orgLoading } = useCurrentOrganization();
+  const { workspace, isLoading: workspaceLoading, isSuperAdmin } = useWorkspaceAccess();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -72,19 +71,9 @@ export function DocsPage() {
   const [newItemType, setNewItemType] = useState<"document" | "folder">("document");
   const [newItemTitle, setNewItemTitle] = useState("");
 
-  // Ensure workspace exists
-  const { data: ensuredWorkspace, isLoading: ensureLoading } = useEnsureDefaultWorkspace(organization?.id);
-
-  // Fetch workspaces
-  const { data: workspaces = [], isLoading: workspacesLoading } = useDocumentWorkspaces(
-    organization?.id || ""
-  );
-
-  const defaultWorkspace = ensuredWorkspace || workspaces.find(w => w.is_default) || workspaces[0];
-
   // Fetch folders and documents
   const { data: folders = [], isLoading: foldersLoading } = useDocumentFolders(
-    defaultWorkspace?.id || "",
+    workspace?.id || "",
     currentFolderId
   );
 
@@ -94,11 +83,11 @@ export function DocsPage() {
     createDocument,
     deleteDocument,
     toggleFavorite
-  } = useDocuments(defaultWorkspace?.id || "", currentFolderId);
+  } = useDocuments(workspace?.id || "", currentFolderId);
 
-  const createFolder = useCreateFolder(defaultWorkspace?.id || "");
+  const createFolder = useCreateFolder(workspace?.id || "");
 
-  const isLoading = orgLoading || ensureLoading || workspacesLoading || foldersLoading || documentsLoading;
+  const isLoading = workspaceLoading || foldersLoading || documentsLoading;
 
   // Build breadcrumb path
   const [breadcrumbPath, setBreadcrumbPath] = useState<DocumentFolder[]>([]);
@@ -185,7 +174,7 @@ export function DocsPage() {
       return;
     }
 
-    if (!defaultWorkspace) {
+    if (!workspace) {
       toast.error("Nenhum workspace encontrado");
       return;
     }
@@ -233,7 +222,7 @@ export function DocsPage() {
   };
 
   // Show loading state or prompt to create workspace
-  if (!isLoading && !defaultWorkspace && organization) {
+  if (!isLoading && !workspace) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -268,7 +257,7 @@ export function DocsPage() {
         </div>
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-3d" disabled={!defaultWorkspace}>
+            <Button className="btn-3d" disabled={!workspace}>
               <Plus className="w-4 h-4 mr-2" />
               Novo
             </Button>
