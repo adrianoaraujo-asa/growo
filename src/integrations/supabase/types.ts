@@ -209,6 +209,451 @@ export type Database = {
           },
         ]
       }
+      document_attachments: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          document_id: string
+          file_size: number
+          filename: string
+          id: string
+          is_inline: boolean | null
+          metadata: Json | null
+          mime_type: string
+          original_filename: string | null
+          r2_key: string
+          r2_url: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          document_id: string
+          file_size: number
+          filename: string
+          id?: string
+          is_inline?: boolean | null
+          metadata?: Json | null
+          mime_type: string
+          original_filename?: string | null
+          r2_key: string
+          r2_url?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string
+          file_size?: number
+          filename?: string
+          id?: string
+          is_inline?: boolean | null
+          metadata?: Json | null
+          mime_type?: string
+          original_filename?: string | null
+          r2_key?: string
+          r2_url?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_attachments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          depth: number | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_private: boolean | null
+          name: string
+          parent_id: string | null
+          path: string
+          sort_order: number | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          depth?: number | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_private?: boolean | null
+          name: string
+          parent_id?: string | null
+          path?: string
+          sort_order?: number | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          depth?: number | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_private?: boolean | null
+          name?: string
+          parent_id?: string | null
+          path?: string
+          sort_order?: number | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_folders_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "document_workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_permissions: {
+        Row: {
+          document_id: string | null
+          expires_at: string | null
+          folder_id: string | null
+          granted_at: string
+          granted_by: string | null
+          id: string
+          inherited_from_folder_id: string | null
+          organization_wide: boolean | null
+          permission_level: Database["public"]["Enums"]["document_permission_level"]
+          user_id: string | null
+        }
+        Insert: {
+          document_id?: string | null
+          expires_at?: string | null
+          folder_id?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          inherited_from_folder_id?: string | null
+          organization_wide?: boolean | null
+          permission_level?: Database["public"]["Enums"]["document_permission_level"]
+          user_id?: string | null
+        }
+        Update: {
+          document_id?: string | null
+          expires_at?: string | null
+          folder_id?: string | null
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          inherited_from_folder_id?: string | null
+          organization_wide?: boolean | null
+          permission_level?: Database["public"]["Enums"]["document_permission_level"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_permissions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_permissions_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_permissions_inherited_from_folder_id_fkey"
+            columns: ["inherited_from_folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_share_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_views: number | null
+          password_hash: string | null
+          permission_level: Database["public"]["Enums"]["document_permission_level"]
+          token: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_views?: number | null
+          password_hash?: string | null
+          permission_level?: Database["public"]["Enums"]["document_permission_level"]
+          token: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_views?: number | null
+          password_hash?: string | null
+          permission_level?: Database["public"]["Enums"]["document_permission_level"]
+          token?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_share_links_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          changes_summary: string | null
+          content: Json | null
+          content_text: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string
+          id: string
+          title: string
+          version_number: number
+        }
+        Insert: {
+          changes_summary?: string | null
+          content?: Json | null
+          content_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          id?: string
+          title: string
+          version_number: number
+        }
+        Update: {
+          changes_summary?: string | null
+          content?: Json | null
+          content_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          title?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_workspaces: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          organization_id: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          organization_id: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          organization_id?: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_workspaces_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          content: Json | null
+          content_text: string | null
+          cover_image_r2_key: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          excerpt: string | null
+          folder_id: string | null
+          icon: string | null
+          id: string
+          is_archived: boolean | null
+          is_favorite: boolean | null
+          is_locked: boolean | null
+          is_published: boolean | null
+          is_template: boolean | null
+          last_edited_by: string | null
+          locked_at: string | null
+          locked_by: string | null
+          parent_document_id: string | null
+          published_at: string | null
+          reading_time_minutes: number | null
+          slug: string | null
+          title: string
+          updated_at: string
+          version: number | null
+          word_count: number | null
+          workspace_id: string
+        }
+        Insert: {
+          content?: Json | null
+          content_text?: string | null
+          cover_image_r2_key?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          excerpt?: string | null
+          folder_id?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          is_locked?: boolean | null
+          is_published?: boolean | null
+          is_template?: boolean | null
+          last_edited_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          parent_document_id?: string | null
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          slug?: string | null
+          title?: string
+          updated_at?: string
+          version?: number | null
+          word_count?: number | null
+          workspace_id: string
+        }
+        Update: {
+          content?: Json | null
+          content_text?: string | null
+          cover_image_r2_key?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          excerpt?: string | null
+          folder_id?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          is_locked?: boolean | null
+          is_published?: boolean | null
+          is_template?: boolean | null
+          last_edited_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          parent_document_id?: string | null
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          slug?: string | null
+          title?: string
+          updated_at?: string
+          version?: number | null
+          word_count?: number | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "document_workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_domains: {
         Row: {
           created_at: string
@@ -685,8 +1130,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       user_belongs_to_org: {
         Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_access_document: {
+        Args: {
+          _document_id: string
+          _required_level?: Database["public"]["Enums"]["document_permission_level"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      user_can_access_folder: {
+        Args: {
+          _folder_id: string
+          _required_level?: Database["public"]["Enums"]["document_permission_level"]
+          _user_id: string
+        }
         Returns: boolean
       }
     }
@@ -714,6 +1177,7 @@ export type Database = {
         | "telegram"
         | "linkedin"
         | "other"
+      document_permission_level: "owner" | "editor" | "viewer"
       document_type: "cpf" | "cnpj" | "passport" | "rg" | "other"
       gender_type: "male" | "female" | "other" | "prefer_not_to_say"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
@@ -864,6 +1328,7 @@ export const Constants = {
         "linkedin",
         "other",
       ],
+      document_permission_level: ["owner", "editor", "viewer"],
       document_type: ["cpf", "cnpj", "passport", "rg", "other"],
       gender_type: ["male", "female", "other", "prefer_not_to_say"],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
