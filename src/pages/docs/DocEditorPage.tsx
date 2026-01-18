@@ -34,21 +34,11 @@ import {
 import { toast } from "sonner";
 import { useDocument } from "@/hooks/useDocuments";
 import { useR2Storage } from "@/hooks/useR2Storage";
-import { NotionEditor } from "@/components/docs/NotionEditor";
+import { RichTextEditor, type ContentBlock } from "@/components/docs/RichTextEditor";
 import { DocumentPermissions } from "@/components/docs/DocumentPermissions";
 import type { Json } from "@/integrations/supabase/types";
 
-interface NotionBlock {
-  id: string;
-  type: "paragraph" | "heading1" | "heading2" | "heading3" | "bulletList" | "numberedList" | "checkList" | "quote" | "code" | "divider" | "image" | "table";
-  content: string;
-  checked?: boolean;
-  align?: "left" | "center" | "right";
-  imageUrl?: string;
-  tableData?: string[][];
-}
-
-const defaultBlocks: NotionBlock[] = [
+const defaultBlocks: ContentBlock[] = [
   { id: "1", type: "paragraph", content: "" },
 ];
 
@@ -61,7 +51,7 @@ export function DocEditorPage() {
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
-  const [editedContent, setEditedContent] = useState<NotionBlock[]>(defaultBlocks);
+  const [editedContent, setEditedContent] = useState<ContentBlock[]>(defaultBlocks);
   const [showPermissions, setShowPermissions] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -72,7 +62,7 @@ export function DocEditorPage() {
     if (document) {
       setEditedTitle(document.title);
       if (document.content && Array.isArray(document.content)) {
-        setEditedContent(document.content as unknown as NotionBlock[]);
+        setEditedContent(document.content as unknown as ContentBlock[]);
       } else {
         setEditedContent(defaultBlocks);
       }
@@ -170,7 +160,7 @@ export function DocEditorPage() {
     }
   }, [uploadFile, id]);
 
-  const handleContentChange = useCallback((blocks: NotionBlock[]) => {
+  const handleContentChange = useCallback((blocks: ContentBlock[]) => {
     setEditedContent(blocks);
   }, []);
 
@@ -330,7 +320,7 @@ export function DocEditorPage() {
       {/* Editor */}
       <Card className="card-3d min-h-[600px]">
         <CardContent className="p-0">
-          <NotionEditor
+          <RichTextEditor
             initialContent={editedContent}
             onChange={handleContentChange}
             readOnly={!isEditing}
