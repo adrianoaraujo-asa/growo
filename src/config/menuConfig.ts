@@ -23,6 +23,14 @@ import {
   BarChart3,
   Briefcase,
   UserCog,
+  LogIn,
+  UserPlus,
+  KeyRound,
+  Mail,
+  CheckCircle,
+  Globe,
+  FileCheck,
+  ShieldCheck,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
@@ -39,6 +47,8 @@ export const menuConfig: MenuSection[] = [
         title: 'Dashboard',
         icon: LayoutDashboard,
         path: '/dashboard',
+        badge: '✓',
+        badgeColor: 'success',
       },
       {
         id: 'analytics',
@@ -61,8 +71,8 @@ export const menuConfig: MenuSection[] = [
         title: 'Documentos',
         icon: FileText,
         path: '/docs',
-        badge: 'Novo',
-        badgeColor: 'primary',
+        badge: '✓',
+        badgeColor: 'success',
       },
     ],
   },
@@ -80,7 +90,7 @@ export const menuConfig: MenuSection[] = [
         title: 'Organizações',
         icon: Building2,
         children: [
-          { id: 'org-list', title: 'Lista', path: '/organizations' },
+          { id: 'org-list', title: 'Lista', path: '/organizations', badge: '✓', badgeColor: 'success' as const },
           { id: 'org-new', title: 'Nova Organização', path: '/organizations/new' },
         ],
       },
@@ -139,9 +149,9 @@ export const menuConfig: MenuSection[] = [
         title: 'Organização',
         icon: Building2,
         children: [
-          { id: 'org-data', title: 'Dados da Empresa', path: '/settings/organization' },
-          { id: 'org-addresses', title: 'Endereços', path: '/settings/addresses' },
-          { id: 'org-contacts', title: 'Contatos', path: '/settings/contacts' },
+          { id: 'org-data', title: 'Dados da Empresa', path: '/settings/organization', badge: '✓', badgeColor: 'success' as const },
+          { id: 'org-addresses', title: 'Endereços', path: '/settings/addresses', badge: '✓', badgeColor: 'success' as const },
+          { id: 'org-contacts', title: 'Contatos', path: '/settings/contacts', badge: '✓', badgeColor: 'success' as const },
         ],
       },
       {
@@ -149,9 +159,9 @@ export const menuConfig: MenuSection[] = [
         title: 'Financeiro',
         icon: CreditCard,
         children: [
-          { id: 'billing-methods', title: 'Métodos de Pagamento', path: '/settings/billing' },
-          { id: 'billing-subscription', title: 'Assinatura', path: '/settings/subscription' },
-          { id: 'billing-invoices', title: 'Faturas', path: '/settings/invoices' },
+          { id: 'billing-methods', title: 'Métodos de Pagamento', path: '/settings/billing', badge: '✓', badgeColor: 'success' as const },
+          { id: 'billing-subscription', title: 'Assinatura', path: '/settings/subscription', badge: '✓', badgeColor: 'success' as const },
+          { id: 'billing-invoices', title: 'Faturas', path: '/settings/invoices', badge: '✓', badgeColor: 'success' as const },
         ],
       },
       {
@@ -159,8 +169,8 @@ export const menuConfig: MenuSection[] = [
         title: 'Equipe',
         icon: Users,
         children: [
-          { id: 'team-users', title: 'Usuários', path: '/settings/users' },
-          { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite' },
+          { id: 'team-users', title: 'Usuários', path: '/settings/users', badge: '✓', badgeColor: 'success' as const },
+          { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite', badge: '✓', badgeColor: 'success' as const },
         ],
       },
       {
@@ -168,8 +178,8 @@ export const menuConfig: MenuSection[] = [
         title: 'Integrações',
         icon: Webhook,
         children: [
-          { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks' },
-          { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys' },
+          { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks', badge: '✓', badgeColor: 'success' as const },
+          { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys', badge: '✓', badgeColor: 'success' as const },
         ],
       },
       {
@@ -193,14 +203,16 @@ export const menuConfig: MenuSection[] = [
         title: 'Meu Perfil',
         icon: User,
         path: '/profile',
+        badge: '✓',
+        badgeColor: 'success',
       },
       {
         id: 'security',
         title: 'Segurança',
         icon: Shield,
         children: [
-          { id: 'sec-password', title: 'Alterar Senha', path: '/profile/security' },
-          { id: 'sec-sessions', title: 'Sessões Ativas', path: '/profile/sessions' },
+          { id: 'sec-password', title: 'Alterar Senha', path: '/profile/security', badge: '✓', badgeColor: 'success' as const },
+          { id: 'sec-sessions', title: 'Sessões Ativas', path: '/profile/sessions', badge: '✓', badgeColor: 'success' as const },
         ],
       },
       {
@@ -208,6 +220,158 @@ export const menuConfig: MenuSection[] = [
         title: 'Notificações',
         icon: Bell,
         path: '/profile/notifications',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+    ],
+  },
+
+  // =====================================
+  // PÁGINAS PÚBLICAS
+  // =====================================
+  {
+    id: 'public-pages',
+    title: 'Páginas Públicas',
+    items: [
+      {
+        id: 'landing',
+        title: 'Landing Page',
+        icon: Globe,
+        path: '/',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'terms',
+        title: 'Termos de Uso',
+        icon: FileCheck,
+        path: '/terms',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'privacy',
+        title: 'Privacidade',
+        icon: ShieldCheck,
+        path: '/privacy',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+    ],
+  },
+
+  // =====================================
+  // AUTENTICAÇÃO (para referência)
+  // =====================================
+  {
+    id: 'auth-pages',
+    title: 'Autenticação',
+    items: [
+      {
+        id: 'login',
+        title: 'Login',
+        icon: LogIn,
+        path: '/auth/login',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'register',
+        title: 'Cadastro',
+        icon: UserPlus,
+        path: '/auth/register',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'forgot-password',
+        title: 'Esqueci Senha',
+        icon: KeyRound,
+        path: '/auth/forgot-password',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'reset-password',
+        title: 'Redefinir Senha',
+        icon: KeyRound,
+        path: '/auth/reset-password',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'verify-email',
+        title: 'Verificar Email',
+        icon: Mail,
+        path: '/auth/verify-email',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'two-steps',
+        title: '2FA',
+        icon: Shield,
+        path: '/auth/two-steps',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+    ],
+  },
+
+  // =====================================
+  // SIGNUP (fluxo de cadastro)
+  // =====================================
+  {
+    id: 'signup-flow',
+    title: 'Signup Flow',
+    items: [
+      {
+        id: 'signup-credentials',
+        title: '1. Credenciais',
+        icon: UserPlus,
+        path: '/signup',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'signup-verify',
+        title: '2. Verificação',
+        icon: CheckCircle,
+        path: '/signup/verify',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'signup-profile',
+        title: '3. Perfil',
+        icon: User,
+        path: '/signup/profile',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'signup-organization',
+        title: '4. Organização',
+        icon: Building2,
+        path: '/signup/organization',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'signup-plan',
+        title: '5. Plano',
+        icon: CreditCard,
+        path: '/signup/plan',
+        badge: '✓',
+        badgeColor: 'success',
+      },
+      {
+        id: 'signup-checkout',
+        title: '6. Checkout',
+        icon: Receipt,
+        path: '/signup/checkout',
+        badge: '✓',
+        badgeColor: 'success',
       },
     ],
   },
@@ -234,7 +398,6 @@ export const menuConfig: MenuSection[] = [
     ],
   },
 ];
-
 // =====================================
 // MENU ADMINISTRATIVO (Super Admin)
 // =====================================
