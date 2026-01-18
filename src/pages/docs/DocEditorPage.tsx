@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft,
   Save,
   Clock,
   Share2,
@@ -14,10 +13,11 @@ import {
   Download,
   Loader2,
   Users,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +27,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useDocument } from "@/hooks/useDocuments";
+import { usePages, usePageTree } from "@/hooks/usePages";
+import { useVersions } from "@/hooks/useVersions";
 import { useR2Storage } from "@/hooks/useR2Storage";
 import { TiptapEditor, TiptapEditorRef } from "@/components/docs/TiptapEditor";
 import { DocumentPermissions } from "@/components/docs/DocumentPermissions";
+import { DocsSidebar } from "@/components/docs/Sidebar/DocsSidebar";
+import { PageHeader } from "@/components/docs/Page/PageHeader";
+import { PageBreadcrumb } from "@/components/docs/Page/PageBreadcrumb";
 import type { Json } from "@/integrations/supabase/types";
 
 export function DocEditorPage() {
@@ -37,27 +42,37 @@ export function DocEditorPage() {
   const navigate = useNavigate();
   const { document, isLoading, error, updateDocument } = useDocument(id || "");
   const { uploadFile } = useR2Storage();
+  const { createVersion } = useVersions(id || "");
+  
+  // Get workspace from document for sidebar
+  const workspaceId = document?.workspace_id || "";
+  const { pages, createPage, deletePage, updatePage } = usePages(workspaceId);
+  const { tree, favorites } = usePageTree(workspaceId);
   
   const [isSaving, setIsSaving] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
+  const [editedIcon, setEditedIcon] = useState<string | null>(null);
+  const [editedCover, setEditedCover] = useState<string | null>(null);
   const [editedHtml, setEditedHtml] = useState("");
   const [editedText, setEditedText] = useState("");
   const [showPermissions, setShowPermissions] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   
-  const titleInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<TiptapEditorRef>(null);
 
   // Sync state with document data
   useEffect(() => {
     if (document) {
       setEditedTitle(document.title);
+      setEditedIcon(document.icon);
+      setEditedCover(document.cover_image_url);
+      
       // Handle both HTML string content and legacy block content
       if (document.content) {
         if (typeof document.content === "string") {
           setEditedHtml(document.content);
         } else if (Array.isArray(document.content)) {
-          // Convert legacy blocks to HTML
           const html = convertBlocksToHtml(document.content as unknown as LegacyBlock[]);
           setEditedHtml(html);
         } else {
@@ -92,6 +107,8 @@ export function DocEditorPage() {
 
       await updateDocument.mutateAsync({
         title: editedTitle,
+        icon: editedIcon,
+        cover_image_url: editedCover,
         content: editedHtml as unknown as Json,
         content_text: editedText,
         word_count: wordCount,
@@ -106,7 +123,7 @@ export function DocEditorPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [document, editedTitle, editedHtml, editedText, updateDocument]);
+  }, [document, editedTitle, editedIcon, editedCover, editedHtml, editedText, updateDocument]);
 
   const handleToggleFavorite = useCallback(async () => {
     if (!document) return;
@@ -153,6 +170,64 @@ export function DocEditorPage() {
     setEditedText(text);
   }, []);
 
+  const handleCreatePage = useCallback(async (parentId?: string) => {
+    try {
+      const newPage = await createPage.mutateAsync({
+        title: "Nova página",
+        parentId,
+      });
+      navigate(`/docs/${newPage.id}`);
+    } catch (error) {
+      toast.error("Erro ao criar página");
+    }
+  }, [createPage, navigate]);
+
+  const handleDeletePage = useCallback(async (pageId: string) => {
+    try {
+      await deletePage.mutateAsync(pageId);
+      if (pageId === id) {
+        navigate("/docs");
+      }
+      toast.success("Página excluída");
+    } catch (error) {
+      toast.error("Erro ao excluir página");
+    }
+  }, [deletePage, id, navigate]);
+
+  const handleTogglePageFavorite = useCallback(async (pageId: string) => {
+    const page = pages.find((p) => p.id === pageId);
+    if (!page) return;
+    
+    try {
+      await updatePage.mutateAsync({
+        id: pageId,
+        is_favorite: !page.is_favorite,
+      });
+    } catch (error) {
+      toast.error("Erro ao atualizar favoritos");
+    }
+  }, [pages, updatePage]);
+
+  const handleSelectPage = useCallback((pageId: string) => {
+    navigate(`/docs/${pageId}`);
+  }, [navigate]);
+
+  const handleSaveVersion = useCallback(async () => {
+    if (!document) return;
+    
+    try {
+      await createVersion.mutateAsync({
+        title: editedTitle,
+        content: editedHtml as unknown as Json,
+        contentText: editedText,
+        changesSummary: "Versão manual",
+      });
+      toast.success("Versão salva!");
+    } catch (error) {
+      toast.error("Erro ao salvar versão");
+    }
+  }, [document, editedTitle, editedHtml, editedText, createVersion]);
+
   // Auto-save every 30 seconds
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
@@ -166,6 +241,15 @@ export function DocEditorPage() {
 
     return () => clearInterval(autoSaveInterval);
   }, [document, editedTitle, editedHtml, handleSave]);
+
+  // Build breadcrumb from document hierarchy
+  const buildBreadcrumb = () => {
+    if (!document) return [];
+    
+    const items = [{ id: document.id, title: document.title, icon: document.icon }];
+    // TODO: traverse parent_document_id to build full path
+    return items;
+  };
 
   if (isLoading) {
     return (
@@ -187,124 +271,166 @@ export function DocEditorPage() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/docs")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <Input
-            ref={titleInputRef}
-            value={editedTitle}
-            onChange={(e) => setEditedTitle(e.target.value)}
-            className="text-xl font-semibold w-[400px] border-none bg-transparent focus-visible:ring-1"
-            placeholder="Título do documento..."
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Sidebar */}
+      {showSidebar && (
+        <div className="w-64 shrink-0">
+          <DocsSidebar
+            pages={tree}
+            favorites={favorites}
+            currentPageId={id}
+            onCreatePage={handleCreatePage}
+            onDeletePage={handleDeletePage}
+            onToggleFavorite={handleTogglePageFavorite}
+            onSelectPage={handleSelectPage}
+            isLoading={!workspaceId}
           />
-          {document.is_favorite && (
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-          )}
         </div>
-        <div className="flex items-center gap-2">
-          {isUploading && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Enviando imagem...
-            </div>
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            Salvar
-          </Button>
-          
-          <Button variant="outline" size="sm" onClick={() => setShowPermissions(true)}>
-            <Users className="w-4 h-4 mr-2" />
-            Compartilhar
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleToggleFavorite}>
-                {document.is_favorite ? (
-                  <>
-                    <StarOff className="w-4 h-4 mr-2" />
-                    Remover dos favoritos
-                  </>
-                ) : (
-                  <>
-                    <Star className="w-4 h-4 mr-2" />
-                    Adicionar aos favoritos
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyLink}>
-                <Share2 className="w-4 h-4 mr-2" />
-                Copiar link
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate(`/docs/${id}/history`)}>
-                <History className="w-4 h-4 mr-2" />
-                Ver histórico
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Copy className="w-4 h-4 mr-2" />
-                Duplicar
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar PDF
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      )}
 
-      {/* Meta info */}
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          Atualizado {formatDate(document.updated_at)}
-        </div>
-        {document.word_count && (
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-background">
           <div className="flex items-center gap-2">
-            <span>{document.word_count} palavras</span>
-            <span>•</span>
-            <span>{document.reading_time_minutes || 1} min de leitura</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSidebar(!showSidebar)}
+            >
+              {showSidebar ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeft className="h-4 w-4" />
+              )}
+            </Button>
+            <PageBreadcrumb items={buildBreadcrumb()} />
           </div>
-        )}
-      </div>
 
-      {/* Editor */}
-      <Card variant="flat" className="min-h-[600px] overflow-hidden">
-        <CardContent className="p-0 h-full">
-          <TiptapEditor
-            ref={editorRef}
-            content={editedHtml}
-            onChange={handleContentChange}
-            onImageUpload={handleImageUpload}
-            placeholder="Comece a escrever... (Cole Markdown para conversão automática)"
+          <div className="flex items-center gap-2">
+            {isUploading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Enviando...
+              </div>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Salvar
+            </Button>
+            
+            <Button variant="outline" size="sm" onClick={() => setShowPermissions(true)}>
+              <Users className="w-4 h-4 mr-2" />
+              Compartilhar
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleToggleFavorite}>
+                  {document.is_favorite ? (
+                    <>
+                      <StarOff className="w-4 h-4 mr-2" />
+                      Remover dos favoritos
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4 mr-2" />
+                      Adicionar aos favoritos
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyLink}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Copiar link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSaveVersion}>
+                  <History className="w-4 h-4 mr-2" />
+                  Salvar versão
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(`/docs/${id}/history`)}>
+                  <Clock className="w-4 h-4 mr-2" />
+                  Ver histórico
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Duplicar
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => handleDeletePage(id!)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Editor Area */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Page Header */}
+          <PageHeader
+            title={editedTitle}
+            icon={editedIcon}
+            coverUrl={editedCover}
+            onTitleChange={setEditedTitle}
+            onIconChange={setEditedIcon}
+            onCoverChange={setEditedCover}
+            onCoverUpload={handleImageUpload}
           />
-        </CardContent>
-      </Card>
+
+          {/* Meta info */}
+          <div className="px-12 pb-4 flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Atualizado {formatDate(document.updated_at)}
+            </div>
+            {document.word_count && (
+              <div className="flex items-center gap-2">
+                <span>{document.word_count} palavras</span>
+                <span>•</span>
+                <span>{document.reading_time_minutes || 1} min de leitura</span>
+              </div>
+            )}
+          </div>
+
+          {/* Editor */}
+          <div className="px-12 pb-8">
+            <Card variant="flat" className="min-h-[400px] overflow-hidden">
+              <CardContent className="p-0 h-full">
+                <TiptapEditor
+                  ref={editorRef}
+                  content={editedHtml}
+                  onChange={handleContentChange}
+                  onImageUpload={handleImageUpload}
+                  placeholder="Comece a escrever... (Cole Markdown para conversão automática)"
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
 
       {/* Permissions Dialog */}
       <DocumentPermissions
@@ -358,3 +484,5 @@ function convertBlocksToHtml(blocks: LegacyBlock[]): string {
     }
   }).join("");
 }
+
+export default DocEditorPage;
