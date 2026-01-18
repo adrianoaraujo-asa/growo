@@ -4,20 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-lg bg-card text-card-foreground transition-all duration-300",
+  "rounded-lg bg-card text-card-foreground",
   {
     variants: {
       variant: {
-        default: "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] hover:shadow-[0_8px_25px_-5px_rgba(67,89,113,0.18)]",
+        default: "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)]",
         elevated: "border border-border/30 shadow-[0_4px_24px_0_rgba(67,89,113,0.1)]",
         flat: "border border-border",
         ghost: "border-0 shadow-none bg-transparent",
         // Sneat border-shadow style with colored bottom border
-        "border-primary": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-primary hover:shadow-[0_8px_25px_-5px_rgba(105,108,255,0.2)]",
-        "border-success": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-success hover:shadow-[0_8px_25px_-5px_rgba(113,221,55,0.2)]",
-        "border-warning": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-warning hover:shadow-[0_8px_25px_-5px_rgba(255,171,0,0.2)]",
-        "border-danger": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-destructive hover:shadow-[0_8px_25px_-5px_rgba(255,62,29,0.2)]",
-        "border-info": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-info hover:shadow-[0_8px_25px_-5px_rgba(3,195,236,0.2)]",
+        "border-primary": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-primary",
+        "border-success": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-success",
+        "border-warning": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-warning",
+        "border-danger": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-destructive",
+        "border-info": "border border-border/50 shadow-[0_2px_6px_0_rgba(67,89,113,0.12)] border-b-2 border-b-info",
       },
       hover: {
         none: "",
