@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
@@ -26,9 +26,8 @@ serve(async (req) => {
       );
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
       return new Response(
@@ -38,7 +37,7 @@ serve(async (req) => {
     }
 
     // Verify superadmin role
-    const { data: hasRole } = await supabase.rpc('has_role', {
+    const { data: hasRole } = await supabaseAdmin.rpc('has_role', {
       _user_id: user.id,
       _role: 'superadmin'
     });
@@ -55,56 +54,61 @@ serve(async (req) => {
 
     switch (action) {
       case 'get-config': {
-        // Return current R2 configuration status (not actual secrets)
-        const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
-        const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
-        const endpoint = Deno.env.get('R2_ENDPOINT');
-        const bucketName = Deno.env.get('R2_BUCKET_NAME');
-        const accountId = Deno.env.get('R2_ACCOUNT_ID');
-        const publicUrl = Deno.env.get('R2_PUBLIC_URL');
+        // Get current R2 configuration from database
+        const { data: config, error } = await supabaseAdmin.rpc('get_storage_config', {
+          p_organization_id: null // Global config
+        });
+
+        if (error) {
+          console.error('Error getting config:', error);
+        }
+
+        const configRow = config?.[0];
 
         return new Response(
           JSON.stringify({
-            configured: !!(accessKeyId && secretAccessKey && endpoint && bucketName),
-            hasAccessKeyId: !!accessKeyId,
-            hasSecretAccessKey: !!secretAccessKey,
-            hasEndpoint: !!endpoint,
-            hasBucketName: !!bucketName,
-            hasAccountId: !!accountId,
-            hasPublicUrl: !!publicUrl,
-            // Return masked values for display
-            endpoint: endpoint ? endpoint.replace(/^(https?:\/\/[^\/]+).*$/, '$1/...') : null,
-            bucketName: bucketName || null,
-            publicUrl: publicUrl || null,
+            configured: !!configRow,
+            hasConfig: !!configRow,
+            config: configRow ? {
+              accountId: configRow.account_id || '',
+              bucketName: configRow.bucket_name || '',
+              endpoint: configRow.endpoint || '',
+              publicUrl: configRow.public_url || '',
+              // Mask sensitive data for display
+              accessKeyId: configRow.access_key_id ? '••••' + configRow.access_key_id.slice(-4) : '',
+              hasSecretKey: !!configRow.secret_access_key,
+            } : null,
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       case 'save-config': {
-        // Save R2 configuration to system.settings (for UI display purposes)
-        // Note: Actual secrets are stored in Edge Function secrets
+        // Save R2 configuration to database
         const body = await req.json();
-        const { endpoint, bucketName, publicUrl, accountId } = body;
+        const { accountId, bucketName, endpoint, publicUrl, accessKeyId, secretAccessKey } = body;
 
-        // Save non-sensitive config to system.settings
-        const { data, error } = await supabase.rpc('admin_upsert_setting', {
-          p_key: 'r2_storage_config',
-          p_value: {
-            endpoint,
-            bucketName,
-            publicUrl,
-            accountId,
-            updatedAt: new Date().toISOString(),
-            updatedBy: user.id,
-          },
-          p_is_public: false,
+        if (!bucketName || !endpoint || !accessKeyId || !secretAccessKey) {
+          return new Response(
+            JSON.stringify({ error: 'Missing required fields: bucketName, endpoint, accessKeyId, secretAccessKey' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data, error } = await supabaseAdmin.rpc('upsert_storage_config', {
+          p_organization_id: null, // Global config
+          p_account_id: accountId || null,
+          p_bucket_name: bucketName,
+          p_endpoint: endpoint,
+          p_public_url: publicUrl || null,
+          p_access_key_id: accessKeyId,
+          p_secret_access_key: secretAccessKey,
         });
 
         if (error) {
-          console.error('Error saving R2 config:', error);
+          console.error('Error saving config:', error);
           return new Response(
-            JSON.stringify({ error: 'Failed to save configuration' }),
+            JSON.stringify({ error: error.message || 'Failed to save configuration' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -112,52 +116,56 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: true,
-            message: 'Configuration saved. Note: Secrets (Access Key ID, Secret Access Key) must be configured in Supabase Dashboard > Edge Functions > Secrets.',
+            id: data,
+            message: 'Configuração salva com sucesso!',
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       case 'test-connection': {
-        // Test R2 connection
-        const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
-        const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
-        const endpoint = Deno.env.get('R2_ENDPOINT');
-        const bucketName = Deno.env.get('R2_BUCKET_NAME');
+        // Get config from database
+        const { data: config, error: configError } = await supabaseAdmin.rpc('get_storage_config', {
+          p_organization_id: null
+        });
 
-        if (!accessKeyId || !secretAccessKey || !endpoint || !bucketName) {
-          const missing = [];
-          if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
-          if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
-          if (!endpoint) missing.push('R2_ENDPOINT');
-          if (!bucketName) missing.push('R2_BUCKET_NAME');
-          
+        if (configError || !config?.[0]) {
           return new Response(
             JSON.stringify({ 
               success: false, 
-              error: `Missing required secrets: ${missing.join(', ')}`,
-              missing,
+              error: 'Configuração R2 não encontrada. Configure primeiro.',
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Try to list bucket (HEAD request)
+        const cfg = config[0];
+        const { access_key_id: accessKeyId, secret_access_key: secretAccessKey, endpoint, bucket_name: bucketName } = cfg;
+
+        if (!accessKeyId || !secretAccessKey || !endpoint || !bucketName) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Configuração incompleta. Preencha todos os campos obrigatórios.',
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Test R2 connection
         try {
           const testKey = `_test/${Date.now()}.txt`;
           const testContent = 'R2 connection test';
           
-          // Simple PUT request to test connectivity
           const uploadUrl = new URL(`${endpoint}/${bucketName}/${testKey}`);
           
-          // AWS Signature V4 - simplified for test
+          // AWS Signature V4
           const now = new Date();
           const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "").slice(0, 15) + "Z";
           const dateStamp = amzDate.slice(0, 8);
           const region = "auto";
           const service = "s3";
           
-          // Create signing key
           const encoder = new TextEncoder();
           const kDate = await hmacSha256(encoder.encode("AWS4" + secretAccessKey), dateStamp);
           const kRegion = await hmacSha256(kDate, region);
@@ -209,7 +217,7 @@ serve(async (req) => {
             return new Response(
               JSON.stringify({ 
                 success: false, 
-                error: `Connection failed: ${response.status} - ${errorText}`,
+                error: `Falha na conexão: ${response.status} - ${errorText.substring(0, 200)}`,
               }),
               { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
@@ -262,9 +270,8 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ 
               success: true,
-              message: 'R2 connection successful! Test file created and deleted.',
+              message: 'Conexão R2 estabelecida com sucesso! Arquivo de teste criado e deletado.',
               bucket: bucketName,
-              endpoint: endpoint.replace(/^(https?:\/\/[^\/]+).*$/, '$1/...'),
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
@@ -273,7 +280,7 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ 
               success: false, 
-              error: fetchError instanceof Error ? fetchError.message : 'Connection failed',
+              error: fetchError instanceof Error ? fetchError.message : 'Falha na conexão',
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );

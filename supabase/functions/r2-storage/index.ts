@@ -156,6 +156,71 @@ async function generatePresignedUrl(
   return url.toString();
 }
 
+interface R2Config {
+  access_key_id: string;
+  secret_access_key: string;
+  endpoint: string;
+  bucket_name: string;
+  public_url?: string;
+  organization_id?: string;
+}
+
+interface StorageConfigRow {
+  id: string;
+  provider: string;
+  organization_id: string | null;
+  account_id: string | null;
+  bucket_name: string;
+  endpoint: string;
+  public_url: string | null;
+  access_key_id: string;
+  secret_access_key: string;
+  is_active: boolean;
+}
+
+// deno-lint-ignore no-explicit-any
+async function getR2Config(supabase: any, organizationId?: string): Promise<R2Config | null> {
+  // First try org-specific config, then fall back to global
+  const { data, error } = await supabase.rpc('get_storage_config', {
+    p_organization_id: organizationId || null
+  }) as { data: StorageConfigRow[] | null; error: Error | null };
+
+  if (error) {
+    console.error('Error getting R2 config:', error);
+    return null;
+  }
+
+  const config = data?.[0];
+  if (!config) {
+    // Fall back to global if org-specific not found
+    if (organizationId) {
+      const { data: globalData } = await supabase.rpc('get_storage_config', {
+        p_organization_id: null
+      }) as { data: StorageConfigRow[] | null; error: Error | null };
+      const globalConfig = globalData?.[0];
+      if (globalConfig) {
+        return {
+          access_key_id: globalConfig.access_key_id,
+          secret_access_key: globalConfig.secret_access_key,
+          endpoint: globalConfig.endpoint,
+          bucket_name: globalConfig.bucket_name,
+          public_url: globalConfig.public_url || undefined,
+        };
+      }
+    }
+    return null;
+  }
+
+  return {
+    access_key_id: config.access_key_id,
+    secret_access_key: config.secret_access_key,
+    endpoint: config.endpoint,
+    bucket_name: config.bucket_name,
+    public_url: config.public_url || undefined,
+    organization_id: config.organization_id || undefined,
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -187,19 +252,23 @@ serve(async (req) => {
       );
     }
 
-    // Get R2 credentials from environment
-    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
-    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
-    const endpoint = Deno.env.get('R2_ENDPOINT');
-    const bucketName = Deno.env.get('R2_BUCKET_NAME');
+    // Get user's organization (optional, for org-specific storage)
+    const { data: orgId } = await supabase.rpc('get_user_organization', {
+      _user_id: user.id
+    });
 
-    if (!accessKeyId || !secretAccessKey || !endpoint || !bucketName) {
-      console.error('Missing R2 credentials');
+    // Get R2 credentials from database
+    const r2Config = await getR2Config(supabase, orgId);
+
+    if (!r2Config) {
+      console.error('No R2 configuration found');
       return new Response(
-        JSON.stringify({ error: 'R2 storage not configured' }),
+        JSON.stringify({ error: 'R2 storage not configured. Please configure storage in admin settings.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { access_key_id: accessKeyId, secret_access_key: secretAccessKey, endpoint, bucket_name: bucketName, public_url: publicUrl } = r2Config;
 
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
@@ -207,7 +276,7 @@ serve(async (req) => {
     switch (action) {
       case 'upload-url': {
         // Generate presigned URL for upload
-        const { key, contentType, documentId } = await req.json();
+        const { key, contentType } = await req.json();
         
         if (!key || !contentType) {
           return new Response(
@@ -230,7 +299,7 @@ serve(async (req) => {
           JSON.stringify({ 
             uploadUrl: presignedUrl,
             key,
-            publicUrl: `${Deno.env.get('R2_PUBLIC_URL') || endpoint}/${bucketName}/${key}`
+            publicUrl: publicUrl ? `${publicUrl}/${key}` : `${endpoint}/${bucketName}/${key}`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -338,7 +407,7 @@ serve(async (req) => {
           JSON.stringify({ 
             success: true,
             key,
-            url: `${Deno.env.get('R2_PUBLIC_URL') || endpoint}/${bucketName}/${key}`,
+            url: publicUrl ? `${publicUrl}/${key}` : `${endpoint}/${bucketName}/${key}`,
             size: file.size,
             contentType: file.type,
           }),
