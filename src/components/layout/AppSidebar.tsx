@@ -6,6 +6,7 @@ import { Menu, X, Shield } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useAppLogo } from '@/hooks/useAppLogo';
 
 const sidebarVariants = {
   expanded: { 
@@ -61,6 +62,7 @@ export function AppSidebar() {
   } = useLayoutStore();
   
   const { isSuperAdmin } = useUserRole();
+  const { logo } = useAppLogo();
 
   const isCollapsed = sidebarCollapsed && !sidebarHover;
   
@@ -107,17 +109,27 @@ export function AppSidebar() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <motion.div 
-              className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20"
-              whileHover={{ 
-                scale: 1.1, 
-                rotate: 5,
-                boxShadow: '0 10px 30px -10px hsl(var(--primary) / 0.4)'
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              <span className="text-primary-foreground font-bold text-lg">G</span>
-            </motion.div>
+            {logo.url ? (
+              <motion.img 
+                src={logo.url}
+                alt={logo.alt}
+                className="w-9 h-9 rounded-xl shrink-0 object-contain"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              />
+            ) : (
+              <motion.div 
+                className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20"
+                whileHover={{ 
+                  scale: 1.1, 
+                  rotate: 5,
+                  boxShadow: '0 10px 30px -10px hsl(var(--primary) / 0.4)'
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-primary-foreground font-bold text-lg">{logo.companyName.charAt(0)}</span>
+              </motion.div>
+            )}
             <AnimatePresence mode="wait">
               {!isCollapsed && (
                 <motion.span 
@@ -127,7 +139,7 @@ export function AppSidebar() {
                   animate="visible"
                   exit="hidden"
                 >
-                  Growo
+                  {logo.companyName}
                 </motion.span>
               )}
             </AnimatePresence>

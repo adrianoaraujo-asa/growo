@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSignupStore } from "@/stores/signupStore";
 import { useEffect } from "react";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 interface SignupLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export default function SignupLayout({ children, currentStep }: SignupLayoutProp
   const navigate = useNavigate();
   const location = useLocation();
   const { canAccessStep, setStep } = useSignupStore();
+  const { logo } = useAppLogo();
 
   // Redirect if trying to access invalid step
   useEffect(() => {
@@ -47,13 +49,14 @@ export default function SignupLayout({ children, currentStep }: SignupLayoutProp
     <div className="min-h-screen flex">
       {/* Logo - Fixed position */}
       <Link to="/" className="fixed top-6 left-6 z-10 flex items-center gap-2">
-        <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-          <svg viewBox="0 0 32 22" fill="none" className="w-5 h-5 text-primary-foreground">
-            <path fillRule="evenodd" clipRule="evenodd" d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z" fill="currentColor"/>
-            <path fillRule="evenodd" clipRule="evenodd" d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z" fill="currentColor"/>
-          </svg>
-        </div>
-        <span className="text-heading font-semibold">ASA.Template</span>
+        {logo.url ? (
+          <img src={logo.url} alt={logo.alt} className="w-8 h-8 rounded-md object-contain" />
+        ) : (
+          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">{logo.companyName.charAt(0)}</span>
+          </div>
+        )}
+        <span className="text-heading font-semibold">{logo.companyName}</span>
       </Link>
 
       {/* Left Side - Stepper */}
