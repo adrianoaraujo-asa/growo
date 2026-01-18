@@ -1156,6 +1156,7 @@ export type Database = {
           p_organization_id?: string
           p_public_url?: string
           p_secret_access_key?: string
+          p_user_id: string
         }
         Returns: string
       }
