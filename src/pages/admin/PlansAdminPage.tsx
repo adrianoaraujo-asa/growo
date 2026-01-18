@@ -65,7 +65,6 @@ const defaultFormData: PlanFormData = {
 };
 
 const SUPABASE_URL = "https://ujkxdoypfazesiyjqdub.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqa3hkb3lwZmF6ZXNpeWpxZHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzNjM0NjcsImV4cCI6MjA4MzkzOTQ2N30.VoL7GY0_MMLV-7H0GHM_EKBxzvqqP_6sqlesOZO0WVc";
 
 async function getAccessToken(): Promise<string> {
   const { data } = await supabase.auth.getSession();
@@ -74,19 +73,66 @@ async function getAccessToken(): Promise<string> {
 
 async function fetchPlans(): Promise<BillingPlan[]> {
   const token = await getAccessToken();
-  const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/plans?deleted_at=is.null&order=sort_order.asc`,
-    {
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Accept-Profile": "billing"
-      }
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-plans`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
     }
-  );
-  if (!response.ok) throw new Error("Failed to fetch plans");
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch plans");
+  }
   return response.json();
+}
+
+async function createPlan(data: PlanFormData): Promise<BillingPlan> {
+  const token = await getAccessToken();
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-plans`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create plan");
+  }
+  return response.json();
+}
+
+async function updatePlan(id: string, data: Partial<PlanFormData>): Promise<BillingPlan> {
+  const token = await getAccessToken();
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-plans?id=${id}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update plan");
+  }
+  return response.json();
+}
+
+async function deletePlan(id: string): Promise<void> {
+  const token = await getAccessToken();
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-plans?id=${id}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete plan");
+  }
 }
 
 export default function PlansAdminPage() {
@@ -98,26 +144,13 @@ export default function PlansAdminPage() {
   const [formData, setFormData] = useState<PlanFormData>(defaultFormData);
   const [featuresText, setFeaturesText] = useState("");
 
-  const { data: plans = [], isLoading } = useQuery({
+  const { data: plans = [], isLoading, error } = useQuery({
     queryKey: ["admin-billing-plans"],
     queryFn: fetchPlans,
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: PlanFormData) => {
-      const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Content-Profile": "billing"
-        },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error(await response.text());
-    },
+    mutationFn: createPlan,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
       queryClient.invalidateQueries({ queryKey: ["billing-plans-public"] });
@@ -125,25 +158,12 @@ export default function PlansAdminPage() {
       closeDialog();
     },
     onError: (error) => {
-      toast({ title: "Erro ao criar plano", description: String(error), variant: "destructive" });
+      toast({ title: "Erro ao criar plano", description: String(error.message), variant: "destructive" });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<PlanFormData> }) => {
-      const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans?id=eq.${id}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Content-Profile": "billing"
-        },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error(await response.text());
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<PlanFormData> }) => updatePlan(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
       queryClient.invalidateQueries({ queryKey: ["billing-plans-public"] });
@@ -151,25 +171,12 @@ export default function PlansAdminPage() {
       closeDialog();
     },
     onError: (error) => {
-      toast({ title: "Erro ao atualizar plano", description: String(error), variant: "destructive" });
+      toast({ title: "Erro ao atualizar plano", description: String(error.message), variant: "destructive" });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans?id=eq.${id}`, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Content-Profile": "billing"
-        },
-        body: JSON.stringify({ deleted_at: new Date().toISOString() })
-      });
-      if (!response.ok) throw new Error(await response.text());
-    },
+    mutationFn: deletePlan,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
       queryClient.invalidateQueries({ queryKey: ["billing-plans-public"] });
@@ -178,7 +185,7 @@ export default function PlansAdminPage() {
       setDeletingPlan(null);
     },
     onError: (error) => {
-      toast({ title: "Erro ao excluir plano", description: String(error), variant: "destructive" });
+      toast({ title: "Erro ao excluir plano", description: String(error.message), variant: "destructive" });
     },
   });
 
@@ -232,6 +239,20 @@ export default function PlansAdminPage() {
   const generateSlug = (name: string) => {
     return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   };
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-heading">Planos de Assinatura</h1>
+          <p className="text-muted-foreground">Gerencie os planos disponíveis.</p>
+        </div>
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 text-center">
+          <p className="text-destructive font-medium">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
