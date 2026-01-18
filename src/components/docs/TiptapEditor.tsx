@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, forwardRef, useImperativeHandle, useState } from "react";
+import React, { useCallback, useEffect, forwardRef, useImperativeHandle, useState, useMemo } from "react";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -11,6 +11,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import { Markdown } from "@tiptap/markdown";
+import TurndownService from "turndown";
 import {
   Bold,
   Italic,
@@ -309,96 +310,42 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
       },
     });
 
-    // Convert HTML to proper Markdown with line breaks
-    const htmlToMarkdown = useCallback((html: string): string => {
-      // Create a temporary div to parse HTML
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      
-      let markdown = '';
-      
-      const processNode = (node: Node): string => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          return node.textContent || '';
-        }
-        
-        if (node.nodeType !== Node.ELEMENT_NODE) return '';
-        
-        const el = node as HTMLElement;
-        const tagName = el.tagName.toLowerCase();
-        const children = Array.from(el.childNodes).map(processNode).join('');
-        
-        switch (tagName) {
-          case 'h1':
-            return `# ${children}\n\n`;
-          case 'h2':
-            return `## ${children}\n\n`;
-          case 'h3':
-            return `### ${children}\n\n`;
-          case 'h4':
-            return `#### ${children}\n\n`;
-          case 'h5':
-            return `##### ${children}\n\n`;
-          case 'h6':
-            return `###### ${children}\n\n`;
-          case 'p':
-            return `${children}\n\n`;
-          case 'br':
-            return '\n';
-          case 'strong':
-          case 'b':
-            return `**${children}**`;
-          case 'em':
-          case 'i':
-            return `*${children}*`;
-          case 'u':
-            return `<u>${children}</u>`;
-          case 's':
-          case 'del':
-          case 'strike':
-            return `~~${children}~~`;
-          case 'code':
-            return `\`${children}\``;
-          case 'pre':
-            const codeEl = el.querySelector('code');
-            const codeContent = codeEl ? codeEl.textContent : children;
-            return `\`\`\`\n${codeContent}\n\`\`\`\n\n`;
-          case 'blockquote':
-            return children.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
-          case 'ul':
-            return children + '\n';
-          case 'ol':
-            return children + '\n';
-          case 'li':
-            const parent = el.parentElement;
-            if (parent?.tagName.toLowerCase() === 'ol') {
-              const index = Array.from(parent.children).indexOf(el) + 1;
-              return `${index}. ${children.trim()}\n`;
-            }
-            return `- ${children.trim()}\n`;
-          case 'hr':
-            return `---\n\n`;
-          case 'a':
-            const href = el.getAttribute('href') || '';
-            return `[${children}](${href})`;
-          case 'img':
-            const src = el.getAttribute('src') || '';
-            const alt = el.getAttribute('alt') || '';
-            return `![${alt}](${src})\n\n`;
-          case 'mark':
-            return `==${children}==`;
-          default:
-            return children;
-        }
-      };
-      
-      Array.from(temp.childNodes).forEach(node => {
-        markdown += processNode(node);
+    // Initialize Turndown service for HTML to Markdown conversion
+    const turndownService = useMemo(() => {
+      const service = new TurndownService({
+        headingStyle: 'atx',
+        hr: '---',
+        bulletListMarker: '-',
+        codeBlockStyle: 'fenced',
+        emDelimiter: '*',
+        strongDelimiter: '**',
       });
       
-      // Clean up extra newlines
-      return markdown.replace(/\n{3,}/g, '\n\n').trim();
+      // Add custom rule for task lists
+      service.addRule('taskListItem', {
+        filter: (node) => {
+          return node.nodeName === 'LI' && 
+                 node.getAttribute('data-type') === 'taskItem';
+        },
+        replacement: (content, node) => {
+          const checked = (node as HTMLElement).getAttribute('data-checked') === 'true';
+          return `- [${checked ? 'x' : ' '}] ${content.trim()}\n`;
+        }
+      });
+      
+      // Add custom rule for highlights
+      service.addRule('highlight', {
+        filter: 'mark',
+        replacement: (content) => `==${content}==`
+      });
+      
+      return service;
     }, []);
+
+    // Convert HTML to Markdown using Turndown library
+    const htmlToMarkdown = useCallback((html: string): string => {
+      return turndownService.turndown(html);
+    }, [turndownService]);
 
     // Handle mode switching
     const handleModeChange = useCallback((newMode: EditorMode) => {
