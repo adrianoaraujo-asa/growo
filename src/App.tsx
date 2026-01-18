@@ -16,7 +16,7 @@ import { OrganizationsPage } from "./pages/organizations";
 import { LandingPage, TermsPage, PrivacyPage } from "./pages/public";
 
 // Admin Pages
-import { PlansAdminPage, LandingSettingsAdminPage } from "./pages/admin";
+import { PlansAdminPage, LandingSettingsAdminPage, StorageAdminPage } from "./pages/admin";
 
 // Settings Pages
 import {
@@ -162,6 +162,7 @@ const App = () => (
               <Route path="/admin/plans" element={<PlansAdminPage />} />
               <Route path="/admin/features" element={<PlaceholderPage title="Features" />} />
               <Route path="/admin/landing" element={<LandingSettingsAdminPage />} />
+              <Route path="/admin/storage" element={<StorageAdminPage />} />
               <Route path="/admin/logs" element={<PlaceholderPage title="Logs do Sistema" />} />
             </Route>
 

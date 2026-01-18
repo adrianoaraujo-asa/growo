@@ -43,17 +43,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useContacts } from "@/hooks/useContacts";
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Database } from "@/integrations/supabase/types";
 
-interface Contact {
-  id: string;
-  type: "email" | "phone" | "whatsapp" | "telegram" | "linkedin" | "other";
-  value: string;
-  label?: string;
-  is_primary: boolean;
-  is_verified: boolean;
-}
+type ContactType = Database["public"]["Enums"]["contact_type"];
 
-const contactTypes = [
+const contactTypes: { value: ContactType; label: string; icon: React.ElementType }[] = [
   { value: "email", label: "Email", icon: Mail },
   { value: "phone", label: "Telefone", icon: Phone },
   { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
@@ -62,63 +59,32 @@ const contactTypes = [
   { value: "other", label: "Outro", icon: MessageCircle },
 ];
 
-// Mock data
-const mockContacts: Contact[] = [
-  {
-    id: "1",
-    type: "email",
-    value: "contato@empresa.com.br",
-    label: "Email Principal",
-    is_primary: true,
-    is_verified: true,
-  },
-  {
-    id: "2",
-    type: "phone",
-    value: "+55 11 99999-9999",
-    label: "Telefone Comercial",
-    is_primary: false,
-    is_verified: true,
-  },
-  {
-    id: "3",
-    type: "whatsapp",
-    value: "+55 11 98888-8888",
-    label: "WhatsApp Suporte",
-    is_primary: false,
-    is_verified: false,
-  },
-];
-
 export function ContactsSettingsPage() {
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
+  const { data: organization, isLoading: orgLoading } = useCurrentOrganization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+
+  const {
+    contacts,
+    isLoading: contactsLoading,
+    deleteContact,
+    setPrimaryContact,
+  } = useContacts({
+    contactableType: "organization",
+    contactableId: organization?.id || "",
+  });
+
+  const isLoading = orgLoading || contactsLoading;
+  const editingContact = editingContactId 
+    ? contacts.find(c => c.id === editingContactId) 
+    : null;
 
   const handleDelete = async (id: string) => {
-    setIsLoading(true);
-    try {
-      setContacts(contacts.filter((c) => c.id !== id));
-      toast.success("Contato removido com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao remover contato");
-    } finally {
-      setIsLoading(false);
-    }
+    await deleteContact.mutateAsync(id);
   };
 
-  const handleSetPrimary = async (id: string) => {
-    const contact = contacts.find((c) => c.id === id);
-    if (!contact) return;
-
-    setContacts(
-      contacts.map((c) => ({
-        ...c,
-        is_primary: c.type === contact.type ? c.id === id : c.is_primary,
-      }))
-    );
-    toast.success("Contato principal atualizado!");
+  const handleSetPrimary = async (id: string, type: ContactType) => {
+    await setPrimaryContact.mutateAsync({ id, type });
   };
 
   const getContactIcon = (type: string) => {
@@ -131,6 +97,28 @@ export function ContactsSettingsPage() {
     return contactTypes.find((t) => t.value === type)?.label || type;
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+
+  if (!organization) {
+    return (
+      <Card className="card-3d">
+        <CardContent className="py-12 text-center">
+          <p className="text-muted-foreground">
+            Você não está vinculado a nenhuma organização.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -142,10 +130,13 @@ export function ContactsSettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-heading">Contatos</h1>
           <p className="text-muted-foreground">
-            Gerencie os contatos da sua organização.
+            Gerencie os contatos da organização <strong>{organization.name}</strong>.
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingContactId(null);
+        }}>
           <DialogTrigger asChild>
             <Button className="btn-3d">
               <Plus className="w-4 h-4 mr-2" />
@@ -163,9 +154,10 @@ export function ContactsSettingsPage() {
             </DialogHeader>
             <ContactForm
               contact={editingContact}
+              organizationId={organization.id}
               onClose={() => {
                 setIsDialogOpen(false);
-                setEditingContact(null);
+                setEditingContactId(null);
               }}
             />
           </DialogContent>
@@ -229,7 +221,8 @@ export function ContactsSettingsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleSetPrimary(contact.id)}
+                        onClick={() => handleSetPrimary(contact.id, contact.type)}
+                        disabled={setPrimaryContact.isPending}
                       >
                         <Star className="w-4 h-4 mr-1" />
                         Definir como principal
@@ -239,7 +232,7 @@ export function ContactsSettingsPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => {
-                        setEditingContact(contact);
+                        setEditingContactId(contact.id);
                         setIsDialogOpen(true);
                       }}
                     >
@@ -282,24 +275,45 @@ export function ContactsSettingsPage() {
 }
 
 interface ContactFormProps {
-  contact?: Contact | null;
+  contact?: Database["public"]["Tables"]["contacts"]["Row"] | null;
+  organizationId: string;
   onClose: () => void;
 }
 
-function ContactForm({ contact, onClose }: ContactFormProps) {
+function ContactForm({ contact, organizationId, onClose }: ContactFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [type, setType] = useState<string>(contact?.type || "email");
+  const [type, setType] = useState<ContactType>(contact?.type || "email");
+  const [value, setValue] = useState(contact?.value || "");
+  const [label, setLabel] = useState(contact?.label || "");
+
+  const { createContact, updateContact } = useContacts({
+    contactableType: "organization",
+    contactableId: organizationId,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
-      toast.success(
-        contact ? "Contato atualizado!" : "Contato adicionado!"
-      );
+      if (contact) {
+        await updateContact.mutateAsync({
+          id: contact.id,
+          type,
+          value,
+          label: label || null,
+        });
+      } else {
+        await createContact.mutateAsync({
+          type,
+          value,
+          label: label || null,
+          organization_id: organizationId,
+        });
+      }
       onClose();
     } catch (error) {
-      toast.error("Erro ao salvar contato");
+      console.error("Error saving contact:", error);
     } finally {
       setIsLoading(false);
     }
@@ -325,7 +339,7 @@ function ContactForm({ contact, onClose }: ContactFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="type">Tipo *</Label>
-        <Select value={type} onValueChange={setType}>
+        <Select value={type} onValueChange={(v) => setType(v as ContactType)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
@@ -344,7 +358,8 @@ function ContactForm({ contact, onClose }: ContactFormProps) {
         <Input
           id="value"
           placeholder={getPlaceholder()}
-          defaultValue={contact?.value}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           required
         />
       </div>
@@ -354,7 +369,8 @@ function ContactForm({ contact, onClose }: ContactFormProps) {
         <Input
           id="label"
           placeholder="Ex: Email Principal, Suporte, etc."
-          defaultValue={contact?.label}
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
         />
       </div>
 
@@ -362,7 +378,7 @@ function ContactForm({ contact, onClose }: ContactFormProps) {
         <Button type="button" variant="outline" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading || !value}>
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {contact ? "Salvar" : "Adicionar"}
         </Button>

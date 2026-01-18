@@ -10,6 +10,7 @@ import {
   Bell,
   MonitorSmartphone,
   Key,
+  Cloud,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
@@ -158,6 +159,13 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Landing Page',
         icon: MonitorSmartphone,
         path: '/admin/landing',
+        badge: '✓',
+      },
+      {
+        id: 'admin-storage',
+        title: 'Storage (R2)',
+        icon: Cloud,
+        path: '/admin/storage',
         badge: '✓',
       },
     ],
