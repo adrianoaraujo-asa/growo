@@ -75,12 +75,13 @@ async function getAccessToken(): Promise<string> {
 async function fetchPlans(): Promise<BillingPlan[]> {
   const token = await getAccessToken();
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/billing.plans?deleted_at=is.null&order=sort_order.asc`,
+    `${SUPABASE_URL}/rest/v1/plans?deleted_at=is.null&order=sort_order.asc`,
     {
       headers: {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept-Profile": "billing"
       }
     }
   );
@@ -105,12 +106,13 @@ export default function PlansAdminPage() {
   const createMutation = useMutation({
     mutationFn: async (data: PlanFormData) => {
       const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/billing.plans`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans`, {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
+          "Content-Profile": "billing"
         },
         body: JSON.stringify(data)
       });
@@ -130,12 +132,13 @@ export default function PlansAdminPage() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<PlanFormData> }) => {
       const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/billing.plans?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans?id=eq.${id}`, {
         method: "PATCH",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
+          "Content-Profile": "billing"
         },
         body: JSON.stringify(data)
       });
@@ -155,12 +158,13 @@ export default function PlansAdminPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const token = await getAccessToken();
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/billing.plans?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/plans?id=eq.${id}`, {
         method: "PATCH",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
+          "Content-Profile": "billing"
         },
         body: JSON.stringify({ deleted_at: new Date().toISOString() })
       });
