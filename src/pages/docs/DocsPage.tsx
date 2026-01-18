@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { useCurrentOrganization, useEnsureDefaultWorkspace } from "@/hooks/useCurrentOrganization";
 import { 
   useDocumentWorkspaces, 
   useDocumentFolders, 
@@ -72,12 +72,15 @@ export function DocsPage() {
   const [newItemType, setNewItemType] = useState<"document" | "folder">("document");
   const [newItemTitle, setNewItemTitle] = useState("");
 
+  // Ensure workspace exists
+  const { data: ensuredWorkspace, isLoading: ensureLoading } = useEnsureDefaultWorkspace(organization?.id);
+
   // Fetch workspaces
   const { data: workspaces = [], isLoading: workspacesLoading } = useDocumentWorkspaces(
     organization?.id || ""
   );
 
-  const defaultWorkspace = workspaces.find(w => w.is_default) || workspaces[0];
+  const defaultWorkspace = ensuredWorkspace || workspaces.find(w => w.is_default) || workspaces[0];
 
   // Fetch folders and documents
   const { data: folders = [], isLoading: foldersLoading } = useDocumentFolders(
@@ -95,7 +98,7 @@ export function DocsPage() {
 
   const createFolder = useCreateFolder(defaultWorkspace?.id || "");
 
-  const isLoading = orgLoading || workspacesLoading || foldersLoading || documentsLoading;
+  const isLoading = orgLoading || ensureLoading || workspacesLoading || foldersLoading || documentsLoading;
 
   // Build breadcrumb path
   const [breadcrumbPath, setBreadcrumbPath] = useState<DocumentFolder[]>([]);
