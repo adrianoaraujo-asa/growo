@@ -309,24 +309,114 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
       },
     });
 
+    // Convert HTML to proper Markdown with line breaks
+    const htmlToMarkdown = useCallback((html: string): string => {
+      // Create a temporary div to parse HTML
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      
+      let markdown = '';
+      
+      const processNode = (node: Node): string => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent || '';
+        }
+        
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+        
+        const el = node as HTMLElement;
+        const tagName = el.tagName.toLowerCase();
+        const children = Array.from(el.childNodes).map(processNode).join('');
+        
+        switch (tagName) {
+          case 'h1':
+            return `# ${children}\n\n`;
+          case 'h2':
+            return `## ${children}\n\n`;
+          case 'h3':
+            return `### ${children}\n\n`;
+          case 'h4':
+            return `#### ${children}\n\n`;
+          case 'h5':
+            return `##### ${children}\n\n`;
+          case 'h6':
+            return `###### ${children}\n\n`;
+          case 'p':
+            return `${children}\n\n`;
+          case 'br':
+            return '\n';
+          case 'strong':
+          case 'b':
+            return `**${children}**`;
+          case 'em':
+          case 'i':
+            return `*${children}*`;
+          case 'u':
+            return `<u>${children}</u>`;
+          case 's':
+          case 'del':
+          case 'strike':
+            return `~~${children}~~`;
+          case 'code':
+            return `\`${children}\``;
+          case 'pre':
+            const codeEl = el.querySelector('code');
+            const codeContent = codeEl ? codeEl.textContent : children;
+            return `\`\`\`\n${codeContent}\n\`\`\`\n\n`;
+          case 'blockquote':
+            return children.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
+          case 'ul':
+            return children + '\n';
+          case 'ol':
+            return children + '\n';
+          case 'li':
+            const parent = el.parentElement;
+            if (parent?.tagName.toLowerCase() === 'ol') {
+              const index = Array.from(parent.children).indexOf(el) + 1;
+              return `${index}. ${children.trim()}\n`;
+            }
+            return `- ${children.trim()}\n`;
+          case 'hr':
+            return `---\n\n`;
+          case 'a':
+            const href = el.getAttribute('href') || '';
+            return `[${children}](${href})`;
+          case 'img':
+            const src = el.getAttribute('src') || '';
+            const alt = el.getAttribute('alt') || '';
+            return `![${alt}](${src})\n\n`;
+          case 'mark':
+            return `==${children}==`;
+          default:
+            return children;
+        }
+      };
+      
+      Array.from(temp.childNodes).forEach(node => {
+        markdown += processNode(node);
+      });
+      
+      // Clean up extra newlines
+      return markdown.replace(/\n{3,}/g, '\n\n').trim();
+    }, []);
+
     // Handle mode switching
     const handleModeChange = useCallback((newMode: EditorMode) => {
       if (!editor) return;
       
       if (newMode === "markdown" && editorMode === "rich") {
         // Switching from Rich to Markdown: convert HTML to Markdown
-        const md = (editor as Editor & { getMarkdown?: () => string }).getMarkdown?.() || editor.getText() || "";
+        const html = editor.getHTML();
+        const md = htmlToMarkdown(html);
         setMarkdownContent(md);
       } else if (newMode === "rich" && editorMode === "markdown") {
         // Switching from Markdown to Rich: convert Markdown to HTML
-        editor.commands.setContent(markdownContent);
-        // Use markdown parser
         editor.commands.clearContent();
         editor.commands.insertContent(markdownContent, { contentType: 'markdown' });
       }
       
       setEditorMode(newMode);
-    }, [editor, editorMode, markdownContent, setEditorMode]);
+    }, [editor, editorMode, markdownContent, setEditorMode, htmlToMarkdown]);
 
     // Handle markdown textarea changes
     const handleMarkdownChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -360,7 +450,7 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
         if (editorMode === "markdown") {
           return markdownContent;
         }
-        return (editor as Editor & { getMarkdown?: () => string })?.getMarkdown?.() || editor?.getText() || "";
+        return htmlToMarkdown(editor?.getHTML() || "");
       },
       setMode: (mode: EditorMode) => handleModeChange(mode),
       setMarkdown: (md: string) => {
