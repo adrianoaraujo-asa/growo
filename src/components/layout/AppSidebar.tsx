@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils';
 import { useLayoutStore } from '@/stores/layoutStore';
-import { menuConfig } from '@/config/menuConfig';
+import { menuConfig, adminMenuConfig } from '@/config/menuConfig';
 import { SidebarMenuItem } from './SidebarMenuItem';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Shield } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const sidebarVariants = {
   expanded: { 
@@ -58,9 +59,15 @@ export function AppSidebar() {
     setSidebarCollapsed,
     setSidebarHover 
   } = useLayoutStore();
+  
+  const { isSuperAdmin } = useUserRole();
 
   const isCollapsed = sidebarCollapsed && !sidebarHover;
-
+  
+  // Combine menus: client menu + admin menu (if superadmin)
+  const activeMenuSections = isSuperAdmin 
+    ? [...menuConfig, ...adminMenuConfig]
+    : menuConfig;
   return (
     <>
       {/* Mobile Overlay */}
@@ -146,7 +153,7 @@ export function AppSidebar() {
         {/* Menu */}
         <ScrollArea className="flex-1 py-4 scrollbar-thin">
           <nav className="px-3 space-y-6">
-            {menuConfig.map((section, sectionIndex) => (
+            {activeMenuSections.map((section, sectionIndex) => (
               <motion.div 
                 key={section.id}
                 variants={sectionVariants}
@@ -157,19 +164,32 @@ export function AppSidebar() {
                 <AnimatePresence mode="wait">
                   {!isCollapsed && (
                     <motion.h4 
-                      className="px-4 mb-3 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest"
+                      className={cn(
+                        "px-4 mb-3 text-[11px] font-semibold uppercase tracking-widest flex items-center gap-2",
+                        section.id.startsWith('admin') 
+                          ? "text-primary/70" 
+                          : "text-muted-foreground/70"
+                      )}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
                       transition={{ duration: 0.2 }}
                     >
+                      {section.id.startsWith('admin') && (
+                        <Shield className="w-3 h-3" />
+                      )}
                       {section.title}
                     </motion.h4>
                   )}
                 </AnimatePresence>
                 {isCollapsed && (
                   <motion.div 
-                    className="h-px bg-gradient-to-r from-transparent via-border to-transparent mx-2 my-3"
+                    className={cn(
+                      "h-px mx-2 my-3",
+                      section.id.startsWith('admin')
+                        ? "bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+                        : "bg-gradient-to-r from-transparent via-border to-transparent"
+                    )}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ duration: 0.3 }}
