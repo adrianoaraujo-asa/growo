@@ -13,10 +13,19 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import { OrganizationsPage } from "./pages/organizations";
 
 // Public Pages
-import { LandingPage, TermsPage, PrivacyPage } from "./pages/public";
+import { LandingPage, TermsPage, PrivacyPage, PricingPage } from "./pages/public";
 
 // Admin Pages
-import { PlansAdminPage, LandingSettingsAdminPage, StorageAdminPage } from "./pages/admin";
+import { 
+  PlansAdminPage, 
+  LandingSettingsAdminPage, 
+  StorageAdminPage,
+  AdminDashboardPage,
+  AdminOrganizationsPage,
+  AdminOrganizationDetailPage,
+  AdminSettingsPage,
+  AdminLogsPage,
+} from "./pages/admin";
 
 // Settings Pages
 import {
@@ -80,6 +89,7 @@ const App = () => (
                 ÁREA PÚBLICA - LANDING & PAGES
             ===================================== */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
 
@@ -158,14 +168,16 @@ const App = () => (
               {/* =====================================
                   ÁREA ADMINISTRATIVA (Super Admin)
               ===================================== */}
-              <Route path="/admin" element={<PlaceholderPage title="Dashboard Admin" description="Visão geral do sistema." />} />
-              <Route path="/admin/organizations" element={<PlaceholderPage title="Organizações (Admin)" />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/organizations" element={<AdminOrganizationsPage />} />
+              <Route path="/admin/organizations/:id" element={<AdminOrganizationDetailPage />} />
               <Route path="/admin/users" element={<PlaceholderPage title="Usuários (Admin)" />} />
               <Route path="/admin/plans" element={<PlansAdminPage />} />
               <Route path="/admin/features" element={<PlaceholderPage title="Features" />} />
               <Route path="/admin/landing" element={<LandingSettingsAdminPage />} />
               <Route path="/admin/storage" element={<StorageAdminPage />} />
-              <Route path="/admin/logs" element={<PlaceholderPage title="Logs do Sistema" />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/logs" element={<AdminLogsPage />} />
             </Route>
 
             {/* =====================================

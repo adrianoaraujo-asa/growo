@@ -142,7 +142,26 @@ export const menuConfig: MenuSection[] = [
 // Apenas telas implementadas
 // =====================================
 export const adminMenuConfig: MenuSection[] = [
-  // ----- Configurações do Produto -----
+  {
+    id: 'admin-overview',
+    title: 'Visão Geral',
+    items: [
+      {
+        id: 'admin-dashboard',
+        title: 'Dashboard',
+        icon: LayoutDashboard,
+        path: '/admin',
+        badge: '✓',
+      },
+      {
+        id: 'admin-orgs',
+        title: 'Organizações',
+        icon: Building2,
+        path: '/admin/organizations',
+        badge: '✓',
+      },
+    ],
+  },
   {
     id: 'admin-product',
     title: 'Configurações do Produto',
@@ -166,6 +185,26 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Storage (R2)',
         icon: Cloud,
         path: '/admin/storage',
+        badge: '✓',
+      },
+    ],
+  },
+  {
+    id: 'admin-system',
+    title: 'Sistema',
+    items: [
+      {
+        id: 'admin-settings',
+        title: 'Configurações',
+        icon: Shield,
+        path: '/admin/settings',
+        badge: '✓',
+      },
+      {
+        id: 'admin-logs',
+        title: 'Logs & Auditoria',
+        icon: Key,
+        path: '/admin/logs',
         badge: '✓',
       },
     ],
