@@ -6,3 +6,5 @@ export { default as AdminOrganizationsPage } from "./AdminOrganizationsPage";
 export { default as AdminOrganizationDetailPage } from "./AdminOrganizationDetailPage";
 export { default as AdminSettingsPage } from "./AdminSettingsPage";
 export { default as AdminLogsPage } from "./AdminLogsPage";
+export { default as AdminUsersPage } from "./AdminUsersPage";
+export { default as AdminFeaturesPage } from "./AdminFeaturesPage";

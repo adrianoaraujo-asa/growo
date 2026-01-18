@@ -25,7 +25,12 @@ import {
   AdminOrganizationDetailPage,
   AdminSettingsPage,
   AdminLogsPage,
+  AdminUsersPage,
+  AdminFeaturesPage,
 } from "./pages/admin";
+
+// Help Pages
+import { HelpPage, HelpContactPage } from "./pages/help";
 
 // Settings Pages
 import {
@@ -41,6 +46,9 @@ import {
   WebhooksSettingsPage,
   ApiKeysSettingsPage,
   OrganizationStoragePage,
+  RolesSettingsPage,
+  IntegrationsSettingsPage,
+  AuditSettingsPage,
 } from "./pages/settings";
 
 // Profile Pages
@@ -145,6 +153,9 @@ const App = () => (
               <Route path="/settings/api-keys" element={<ApiKeysSettingsPage />} />
               <Route path="/settings/preferences" element={<PlaceholderPage title="Preferências" description="Configurações de localização e aparência." />} />
               <Route path="/settings/storage" element={<OrganizationStoragePage />} />
+              <Route path="/settings/roles" element={<RolesSettingsPage />} />
+              <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
+              <Route path="/settings/audit" element={<AuditSettingsPage />} />
 
               {/* =====================================
                   PERFIL DO USUÁRIO
@@ -162,8 +173,8 @@ const App = () => (
               {/* =====================================
                   AJUDA E SUPORTE
               ===================================== */}
-              <Route path="/help" element={<PlaceholderPage title="Central de Ajuda" description="Encontre respostas para suas dúvidas." />} />
-              <Route path="/help/contact" element={<PlaceholderPage title="Suporte" description="Entre em contato com nossa equipe." />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/help/contact" element={<HelpContactPage />} />
 
               {/* =====================================
                   ÁREA ADMINISTRATIVA (Super Admin)
@@ -171,9 +182,9 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboardPage />} />
               <Route path="/admin/organizations" element={<AdminOrganizationsPage />} />
               <Route path="/admin/organizations/:id" element={<AdminOrganizationDetailPage />} />
-              <Route path="/admin/users" element={<PlaceholderPage title="Usuários (Admin)" />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/admin/plans" element={<PlansAdminPage />} />
-              <Route path="/admin/features" element={<PlaceholderPage title="Features" />} />
+              <Route path="/admin/features" element={<AdminFeaturesPage />} />
               <Route path="/admin/landing" element={<LandingSettingsAdminPage />} />
               <Route path="/admin/storage" element={<StorageAdminPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />

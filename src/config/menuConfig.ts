@@ -11,6 +11,9 @@ import {
   MonitorSmartphone,
   Key,
   Cloud,
+  Plug,
+  Activity,
+  HelpCircle,
 } from 'lucide-react';
 import { MenuSection } from '@/types/menu';
 
@@ -92,6 +95,7 @@ export const menuConfig: MenuSection[] = [
         children: [
           { id: 'team-users', title: 'Usuários', path: '/settings/users', badge: '✓' },
           { id: 'team-invite', title: 'Convidar', path: '/settings/users/invite', badge: '✓' },
+          { id: 'team-roles', title: 'Papéis', path: '/settings/roles', badge: '✓' },
         ],
       },
       {
@@ -101,7 +105,15 @@ export const menuConfig: MenuSection[] = [
         children: [
           { id: 'int-webhooks', title: 'Webhooks', path: '/settings/webhooks', badge: '✓' },
           { id: 'int-api-keys', title: 'API Keys', path: '/settings/api-keys', badge: '✓' },
+          { id: 'int-apps', title: 'Aplicativos', path: '/settings/integrations', badge: '✓' },
         ],
+      },
+      {
+        id: 'audit-settings',
+        title: 'Auditoria',
+        icon: Activity,
+        path: '/settings/audit',
+        badge: '✓',
       },
     ],
   },
@@ -135,6 +147,20 @@ export const menuConfig: MenuSection[] = [
       },
     ],
   },
+
+  {
+    id: 'help',
+    title: 'Ajuda',
+    items: [
+      {
+        id: 'help-center',
+        title: 'Central de Ajuda',
+        icon: HelpCircle,
+        path: '/help',
+        badge: '✓',
+      },
+    ],
+  },
 ];
 
 // =====================================
@@ -160,6 +186,13 @@ export const adminMenuConfig: MenuSection[] = [
         path: '/admin/organizations',
         badge: '✓',
       },
+      {
+        id: 'admin-users',
+        title: 'Usuários',
+        icon: Users,
+        path: '/admin/users',
+        badge: '✓',
+      },
     ],
   },
   {
@@ -171,6 +204,13 @@ export const adminMenuConfig: MenuSection[] = [
         title: 'Planos',
         icon: CreditCard,
         path: '/admin/plans',
+        badge: '✓',
+      },
+      {
+        id: 'admin-features',
+        title: 'Features',
+        icon: Plug,
+        path: '/admin/features',
         badge: '✓',
       },
       {

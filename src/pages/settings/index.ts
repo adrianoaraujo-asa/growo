@@ -10,3 +10,6 @@ export { InvoicesSettingsPage } from "./InvoicesSettingsPage";
 export { WebhooksSettingsPage } from "./WebhooksSettingsPage";
 export { ApiKeysSettingsPage } from "./ApiKeysSettingsPage";
 export { OrganizationStoragePage } from "./OrganizationStoragePage";
+export { default as RolesSettingsPage } from "./RolesSettingsPage";
+export { default as IntegrationsSettingsPage } from "./IntegrationsSettingsPage";
+export { default as AuditSettingsPage } from "./AuditSettingsPage";
