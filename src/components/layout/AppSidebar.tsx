@@ -89,8 +89,8 @@ export function AppSidebar() {
       {/* Sidebar */}
       <motion.aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full sidebar-float flex flex-col",
-          "lg:relative lg:z-auto",
+          "h-full sidebar-float flex flex-col shrink-0",
+          "fixed left-0 top-0 z-50 lg:sticky lg:top-0 lg:z-auto",
           sidebarCollapsed && "max-lg:-translate-x-full"
         )}
         initial={false}
