@@ -10,6 +10,7 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
+import { Markdown } from "@tiptap/markdown";
 import {
   Bold,
   Italic,
@@ -65,207 +66,7 @@ export interface TiptapEditorRef {
   getHTML: () => string;
   getText: () => string;
   getEditor: () => Editor | null;
-}
-
-// Improved Markdown to HTML parser - line by line processing
-function parseMarkdownToHtml(markdown: string): string {
-  // Normalize line endings
-  const text = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const lines = text.split('\n');
-  const htmlParts: string[] = [];
-  
-  let i = 0;
-  let inCodeBlock = false;
-  let codeContent: string[] = [];
-  let inList = false;
-  let listType: 'ul' | 'ol' | 'task' = 'ul';
-  let listItems: string[] = [];
-  
-  const flushList = () => {
-    if (listItems.length > 0) {
-      if (listType === 'task') {
-        htmlParts.push(`<ul data-type="taskList">${listItems.join('')}</ul>`);
-      } else if (listType === 'ol') {
-        htmlParts.push(`<ol>${listItems.join('')}</ol>`);
-      } else {
-        htmlParts.push(`<ul>${listItems.join('')}</ul>`);
-      }
-      listItems = [];
-      inList = false;
-    }
-  };
-  
-  while (i < lines.length) {
-    const line = lines[i];
-    
-    // Code block handling
-    if (line.startsWith('```')) {
-      if (inCodeBlock) {
-        // End code block
-        htmlParts.push(`<pre><code>${escapeHtml(codeContent.join('\n'))}</code></pre>`);
-        codeContent = [];
-        inCodeBlock = false;
-      } else {
-        // Start code block
-        flushList();
-        inCodeBlock = true;
-      }
-      i++;
-      continue;
-    }
-    
-    if (inCodeBlock) {
-      codeContent.push(line);
-      i++;
-      continue;
-    }
-    
-    // Empty line - flush list if active
-    if (line.trim() === '') {
-      flushList();
-      i++;
-      continue;
-    }
-    
-    // Horizontal rule
-    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
-      flushList();
-      htmlParts.push('<hr />');
-      i++;
-      continue;
-    }
-    
-    // Headers (# to ######)
-    const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
-    if (headerMatch) {
-      flushList();
-      const level = headerMatch[1].length;
-      htmlParts.push(`<h${level}>${parseInlineMarkdown(headerMatch[2])}</h${level}>`);
-      i++;
-      continue;
-    }
-    
-    // Blockquote
-    if (line.startsWith('> ') || line === '>') {
-      flushList();
-      const quoteLines: string[] = [];
-      while (i < lines.length && (lines[i].startsWith('> ') || lines[i] === '>')) {
-        quoteLines.push(lines[i].replace(/^>\s?/, ''));
-        i++;
-      }
-      htmlParts.push(`<blockquote><p>${parseInlineMarkdown(quoteLines.join('<br />'))}</p></blockquote>`);
-      continue;
-    }
-    
-    // Task list item
-    const taskMatch = line.match(/^[-*+]\s+\[([xX ])\]\s*(.*)$/);
-    if (taskMatch) {
-      if (inList && listType !== 'task') {
-        flushList();
-      }
-      inList = true;
-      listType = 'task';
-      const checked = taskMatch[1].toLowerCase() === 'x';
-      listItems.push(`<li data-type="taskItem" data-checked="${checked}">${parseInlineMarkdown(taskMatch[2])}</li>`);
-      i++;
-      continue;
-    }
-    
-    // Unordered list item
-    const ulMatch = line.match(/^[-*+]\s+(.*)$/);
-    if (ulMatch) {
-      if (inList && listType !== 'ul') {
-        flushList();
-      }
-      inList = true;
-      listType = 'ul';
-      listItems.push(`<li>${parseInlineMarkdown(ulMatch[1])}</li>`);
-      i++;
-      continue;
-    }
-    
-    // Ordered list item
-    const olMatch = line.match(/^\d+\.\s+(.*)$/);
-    if (olMatch) {
-      if (inList && listType !== 'ol') {
-        flushList();
-      }
-      inList = true;
-      listType = 'ol';
-      listItems.push(`<li>${parseInlineMarkdown(olMatch[1])}</li>`);
-      i++;
-      continue;
-    }
-    
-    // Regular paragraph line
-    flushList();
-    htmlParts.push(`<p>${parseInlineMarkdown(line)}</p>`);
-    i++;
-  }
-  
-  // Flush any remaining list
-  flushList();
-  
-  // Close any unclosed code block
-  if (inCodeBlock && codeContent.length > 0) {
-    htmlParts.push(`<pre><code>${escapeHtml(codeContent.join('\n'))}</code></pre>`);
-  }
-  
-  return htmlParts.join('');
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function parseInlineMarkdown(text: string): string {
-  let html = text;
-  
-  // Bold and italic combined
-  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
-  
-  // Bold
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
-  
-  // Italic (be careful with underscores in URLs/emails)
-  html = html.replace(/(?<![a-zA-Z0-9])\*([^*\n]+)\*(?![a-zA-Z0-9])/g, '<em>$1</em>');
-  html = html.replace(/(?<![a-zA-Z0-9])_([^_\n]+)_(?![a-zA-Z0-9])/g, '<em>$1</em>');
-  
-  // Strikethrough
-  html = html.replace(/~~(.+?)~~/g, '<s>$1</s>');
-  
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-  
-  // Images
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />');
-  
-  return html;
-}
-
-function isMarkdown(text: string): boolean {
-  const patterns = [
-    /^#{1,6}\s+/m,           // Headers
-    /\*\*[^*]+\*\*/,         // Bold with **
-    /__[^_]+__/,             // Bold with __
-    /^[-*+]\s+/m,            // Unordered list
-    /^\d+\.\s+/m,            // Ordered list
-    /^>\s+/m,                // Blockquote
-    /^```/m,                 // Code block
-    /\[.+?\]\(.+?\)/,        // Links
-    /^-{3,}$/m,              // Horizontal rule
-    /^[-*+]\s+\[[ xX]\]/m,   // Task list
-  ];
-  
-  return patterns.some(pattern => pattern.test(text));
+  getMarkdown: () => string;
 }
 
 const ToolbarButton = ({
@@ -351,6 +152,7 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
           multicolor: false,
         }),
         Typography,
+        Markdown,
       ],
       content,
       editable: !readOnly,
@@ -444,16 +246,7 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
             "[&_img]:my-4"
           ),
         },
-        handlePaste: (view, event) => {
-          const text = event.clipboardData?.getData("text/plain");
-          if (text && isMarkdown(text)) {
-            event.preventDefault();
-            const html = parseMarkdownToHtml(text);
-            editor?.commands.insertContent(html);
-            return true;
-          }
-          return false;
-        },
+        // Markdown extension handles paste automatically via transformPastedText
       },
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();
@@ -466,6 +259,7 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
       getHTML: () => editor?.getHTML() || "",
       getText: () => editor?.getText() || "",
       getEditor: () => editor,
+      getMarkdown: () => editor?.getMarkdown?.() || editor?.getText() || "",
     }));
 
     useEffect(() => {
