@@ -202,7 +202,12 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
           multicolor: false,
         }),
         Typography,
-        Markdown,
+        Markdown.configure({
+          markedOptions: {
+            gfm: true,
+            breaks: true,
+          },
+        }),
       ],
       content,
       editable: !readOnly,
