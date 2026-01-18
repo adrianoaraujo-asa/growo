@@ -697,13 +697,7 @@ export function RichTextEditor({
         />
 
         {blocks.map((block, index) => (
-          <div
-            key={block.id}
-            className={cn(
-              "group relative",
-              activeBlockId === block.id && !readOnly && "bg-primary/5 -mx-2 px-2 rounded"
-            )}
-          >
+          <div key={block.id}>
             {renderBlock(block, index)}
           </div>
         ))}
