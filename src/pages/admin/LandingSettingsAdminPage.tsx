@@ -30,7 +30,7 @@ async function fetchSettings(): Promise<SettingRow[]> {
   const token = await getAccessToken();
   const keys = ["landing_page_logo", "landing_page_colors", "landing_page_social_links", "landing_page_company_info"];
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/system.settings?key=in.(${keys.map(k => `"${k}"`).join(",")})`,
+    `${SUPABASE_URL}/functions/v1/admin-settings?keys=${keys.join(",")}`,
     {
       headers: {
         "apikey": SUPABASE_ANON_KEY,
@@ -46,24 +46,19 @@ async function fetchSettings(): Promise<SettingRow[]> {
 async function upsertSetting(key: string, value: unknown): Promise<void> {
   const token = await getAccessToken();
   
-  // Check if exists
-  const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/system.settings?key=eq.${key}&select=id`, {
-    headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${token}` }
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-settings`, {
+    method: "POST",
+    headers: { 
+      "apikey": SUPABASE_ANON_KEY, 
+      "Authorization": `Bearer ${token}`, 
+      "Content-Type": "application/json" 
+    },
+    body: JSON.stringify({ key, value, is_public: true })
   });
-  const existing = await checkRes.json();
-
-  if (existing && existing.length > 0) {
-    await fetch(`${SUPABASE_URL}/rest/v1/system.settings?key=eq.${key}`, {
-      method: "PATCH",
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ value, updated_at: new Date().toISOString() })
-    });
-  } else {
-    await fetch(`${SUPABASE_URL}/rest/v1/system.settings`, {
-      method: "POST",
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ key, value, is_public: true })
-    });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to save setting");
   }
 }
 
