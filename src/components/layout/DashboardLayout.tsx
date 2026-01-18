@@ -27,11 +27,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Navbar - Fixed at top */}
         <AppNavbar />
 
-        {/* Content */}
-        <div className="flex-1">
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
           {/* Page Content with Animation */}
           <main className={cn(
-            "flex-1 p-6",
+            "p-6",
             contentWidth === 'boxed' && "max-w-7xl mx-auto w-full"
           )}>
             <PageTransition>
