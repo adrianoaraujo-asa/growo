@@ -17,7 +17,8 @@ import {
   Copy,
   Clock,
   ChevronRight,
-  Home
+  Home,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,121 +49,22 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { 
+  useDocumentWorkspaces, 
+  useDocumentFolders, 
+  useDocuments, 
+  useCreateFolder 
+} from "@/hooks/useDocuments";
+import type { Database } from "@/integrations/supabase/types";
 
-interface Document {
-  id: string;
-  title: string;
-  type: "document" | "folder";
-  parentId: string | null;
-  content?: string;
-  excerpt?: string;
-  isFavorite: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  icon?: string;
-}
-
-// Mock data
-const mockDocuments: Document[] = [
-  {
-    id: "folder-1",
-    title: "Políticas da Empresa",
-    type: "folder",
-    parentId: null,
-    isFavorite: false,
-    createdAt: "2025-06-01T10:00:00Z",
-    updatedAt: "2025-12-01T10:00:00Z",
-    createdBy: "João Silva",
-    icon: "📁",
-  },
-  {
-    id: "folder-2",
-    title: "Guias Técnicos",
-    type: "folder",
-    parentId: null,
-    isFavorite: true,
-    createdAt: "2025-07-15T10:00:00Z",
-    updatedAt: "2026-01-10T10:00:00Z",
-    createdBy: "Maria Santos",
-    icon: "📚",
-  },
-  {
-    id: "folder-3",
-    title: "Templates",
-    type: "folder",
-    parentId: null,
-    isFavorite: false,
-    createdAt: "2025-08-20T10:00:00Z",
-    updatedAt: "2025-11-05T10:00:00Z",
-    createdBy: "Pedro Oliveira",
-    icon: "📋",
-  },
-  {
-    id: "doc-1",
-    title: "Manual de Onboarding",
-    type: "document",
-    parentId: null,
-    excerpt: "Este manual contém todas as informações necessárias para novos colaboradores...",
-    isFavorite: true,
-    createdAt: "2025-05-10T10:00:00Z",
-    updatedAt: "2026-01-15T08:30:00Z",
-    createdBy: "Ana Costa",
-    icon: "📖",
-  },
-  {
-    id: "doc-2",
-    title: "Código de Conduta",
-    type: "document",
-    parentId: "folder-1",
-    excerpt: "O código de conduta estabelece os princípios e valores que guiam...",
-    isFavorite: false,
-    createdAt: "2025-06-15T10:00:00Z",
-    updatedAt: "2025-09-20T14:00:00Z",
-    createdBy: "João Silva",
-    icon: "⚖️",
-  },
-  {
-    id: "doc-3",
-    title: "Política de Home Office",
-    type: "document",
-    parentId: "folder-1",
-    excerpt: "Esta política define as regras e diretrizes para trabalho remoto...",
-    isFavorite: false,
-    createdAt: "2025-07-01T10:00:00Z",
-    updatedAt: "2025-10-15T11:00:00Z",
-    createdBy: "Maria Santos",
-    icon: "🏠",
-  },
-  {
-    id: "doc-4",
-    title: "Guia de API",
-    type: "document",
-    parentId: "folder-2",
-    excerpt: "Documentação completa da API REST incluindo endpoints, autenticação...",
-    isFavorite: true,
-    createdAt: "2025-08-10T10:00:00Z",
-    updatedAt: "2026-01-12T16:45:00Z",
-    createdBy: "Pedro Oliveira",
-    icon: "🔌",
-  },
-  {
-    id: "doc-5",
-    title: "Arquitetura do Sistema",
-    type: "document",
-    parentId: "folder-2",
-    excerpt: "Visão geral da arquitetura técnica, incluindo microserviços, banco de dados...",
-    isFavorite: false,
-    createdAt: "2025-09-05T10:00:00Z",
-    updatedAt: "2025-12-20T09:00:00Z",
-    createdBy: "Ana Costa",
-    icon: "🏗️",
-  },
-];
+type DocumentFolder = Database["public"]["Tables"]["document_folders"]["Row"];
+type Document = Database["public"]["Tables"]["documents"]["Row"];
 
 export function DocsPage() {
   const navigate = useNavigate();
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
+  const { data: organization, isLoading: orgLoading } = useCurrentOrganization();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -170,48 +72,90 @@ export function DocsPage() {
   const [newItemType, setNewItemType] = useState<"document" | "folder">("document");
   const [newItemTitle, setNewItemTitle] = useState("");
 
-  // Get current folder path for breadcrumb
-  const getBreadcrumbPath = (): Document[] => {
-    const path: Document[] = [];
-    let currentId = currentFolderId;
-    
-    while (currentId) {
-      const folder = documents.find((d) => d.id === currentId);
-      if (folder) {
-        path.unshift(folder);
-        currentId = folder.parentId;
-      } else {
-        break;
-      }
+  // Fetch workspaces
+  const { data: workspaces = [], isLoading: workspacesLoading } = useDocumentWorkspaces(
+    organization?.id || ""
+  );
+
+  const defaultWorkspace = workspaces.find(w => w.is_default) || workspaces[0];
+
+  // Fetch folders and documents
+  const { data: folders = [], isLoading: foldersLoading } = useDocumentFolders(
+    defaultWorkspace?.id || "",
+    currentFolderId
+  );
+
+  const { 
+    documents, 
+    isLoading: documentsLoading,
+    createDocument,
+    deleteDocument,
+    toggleFavorite
+  } = useDocuments(defaultWorkspace?.id || "", currentFolderId);
+
+  const createFolder = useCreateFolder(defaultWorkspace?.id || "");
+
+  const isLoading = orgLoading || workspacesLoading || foldersLoading || documentsLoading;
+
+  // Build breadcrumb path
+  const [breadcrumbPath, setBreadcrumbPath] = useState<DocumentFolder[]>([]);
+
+  const getBreadcrumbPath = async (folderId: string | null) => {
+    if (!folderId) {
+      setBreadcrumbPath([]);
+      return;
     }
-    return path;
+    // For simplicity, just show current folder
+    const folder = folders.find(f => f.id === folderId);
+    if (folder) {
+      setBreadcrumbPath([folder]);
+    }
   };
 
-  // Filter documents based on search and current folder
-  const filteredDocuments = useMemo(() => {
-    let filtered = documents;
+  // Combined items (folders + documents)
+  const items = useMemo(() => {
+    const folderItems = folders.map(f => ({
+      id: f.id,
+      title: f.name,
+      type: "folder" as const,
+      isFavorite: false,
+      createdAt: f.created_at,
+      updatedAt: f.updated_at,
+      icon: f.icon || "📁",
+      excerpt: f.description,
+    }));
 
-    // Filter by current folder
-    if (!searchTerm) {
-      filtered = filtered.filter((d) => d.parentId === currentFolderId);
-    } else {
-      // When searching, show all matching documents
-      filtered = filtered.filter(
-        (d) =>
-          d.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (d.excerpt && d.excerpt.toLowerCase().includes(searchTerm.toLowerCase()))
+    const docItems = documents.map(d => ({
+      id: d.id,
+      title: d.title,
+      type: "document" as const,
+      isFavorite: d.is_favorite || false,
+      createdAt: d.created_at,
+      updatedAt: d.updated_at,
+      icon: d.icon || "📄",
+      excerpt: d.excerpt,
+    }));
+
+    let combined = [...folderItems, ...docItems];
+
+    // Filter by search
+    if (searchTerm) {
+      combined = combined.filter(
+        item =>
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (item.excerpt && item.excerpt.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
-    // Sort: folders first, then by title
-    return filtered.sort((a, b) => {
+    // Sort: folders first, then favorites, then by title
+    return combined.sort((a, b) => {
       if (a.type === "folder" && b.type !== "folder") return -1;
       if (a.type !== "folder" && b.type === "folder") return 1;
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
       return a.title.localeCompare(b.title);
     });
-  }, [documents, searchTerm, currentFolderId]);
-
-  const breadcrumbPath = getBreadcrumbPath();
+  }, [folders, documents, searchTerm]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pt-BR", {
@@ -221,49 +165,62 @@ export function DocsPage() {
     });
   };
 
-  const handleToggleFavorite = (id: string) => {
-    setDocuments(
-      documents.map((d) =>
-        d.id === id ? { ...d, isFavorite: !d.isFavorite } : d
-      )
-    );
+  const handleToggleFavorite = (id: string, currentFavorite: boolean) => {
+    toggleFavorite.mutate({ id, isFavorite: currentFavorite });
   };
 
-  const handleDelete = (id: string) => {
-    setDocuments(documents.filter((d) => d.id !== id));
-    toast.success("Item removido!");
+  const handleDelete = (id: string, type: "folder" | "document") => {
+    if (type === "document") {
+      deleteDocument.mutate(id);
+    }
+    // TODO: Add folder delete mutation
   };
 
-  const handleCreateNew = () => {
+  const handleCreateNew = async () => {
     if (!newItemTitle.trim()) {
       toast.error("Digite um título");
       return;
     }
 
-    const newItem: Document = {
-      id: `${newItemType}-${Date.now()}`,
-      title: newItemTitle,
-      type: newItemType,
-      parentId: currentFolderId,
-      isFavorite: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: "Você",
-      icon: newItemType === "folder" ? "📁" : "📄",
-      excerpt: newItemType === "document" ? "Documento em branco..." : undefined,
-    };
+    if (!defaultWorkspace) {
+      toast.error("Nenhum workspace encontrado");
+      return;
+    }
 
-    setDocuments([...documents, newItem]);
-    setNewItemTitle("");
-    setIsNewDialogOpen(false);
-    toast.success(`${newItemType === "folder" ? "Pasta" : "Documento"} criado!`);
-
-    if (newItemType === "document") {
-      navigate(`/docs/${newItem.id}`);
+    if (newItemType === "folder") {
+      createFolder.mutate(
+        {
+          name: newItemTitle,
+          parent_id: currentFolderId,
+          icon: "📁",
+        },
+        {
+          onSuccess: () => {
+            setNewItemTitle("");
+            setIsNewDialogOpen(false);
+          },
+        }
+      );
+    } else {
+      createDocument.mutate(
+        {
+          title: newItemTitle,
+          folder_id: currentFolderId,
+          icon: "📄",
+          content: [{ id: "1", type: "paragraph", content: "" }],
+        },
+        {
+          onSuccess: (data) => {
+            setNewItemTitle("");
+            setIsNewDialogOpen(false);
+            navigate(`/docs/${data.id}`);
+          },
+        }
+      );
     }
   };
 
-  const handleOpenItem = (item: Document) => {
+  const handleOpenItem = (item: typeof items[0]) => {
     if (item.type === "folder") {
       setCurrentFolderId(item.id);
       setSearchTerm("");
@@ -271,6 +228,25 @@ export function DocsPage() {
       navigate(`/docs/${item.id}`);
     }
   };
+
+  // Show loading state or prompt to create workspace
+  if (!isLoading && !defaultWorkspace && organization) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center justify-center min-h-[400px] space-y-4"
+      >
+        <FileText className="w-16 h-16 text-muted-foreground" />
+        <h2 className="text-xl font-semibold">Nenhum workspace de documentos</h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          Você ainda não tem um workspace de documentos configurado. 
+          Um workspace padrão será criado automaticamente.
+        </p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -289,7 +265,7 @@ export function DocsPage() {
         </div>
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-3d">
+            <Button className="btn-3d" disabled={!defaultWorkspace}>
               <Plus className="w-4 h-4 mr-2" />
               Novo
             </Button>
@@ -344,7 +320,15 @@ export function DocsPage() {
                 <Button variant="outline" onClick={() => setIsNewDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleCreateNew}>Criar</Button>
+                <Button 
+                  onClick={handleCreateNew}
+                  disabled={createDocument.isPending || createFolder.isPending}
+                >
+                  {(createDocument.isPending || createFolder.isPending) && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Criar
+                </Button>
               </div>
             </div>
           </DialogContent>
@@ -357,11 +341,14 @@ export function DocsPage() {
           variant="ghost"
           size="sm"
           className="h-8 px-2"
-          onClick={() => setCurrentFolderId(null)}
+          onClick={() => {
+            setCurrentFolderId(null);
+            setBreadcrumbPath([]);
+          }}
         >
           <Home className="w-4 h-4" />
         </Button>
-        {breadcrumbPath.map((folder, index) => (
+        {breadcrumbPath.map((folder) => (
           <div key={folder.id} className="flex items-center gap-2">
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
             <Button
@@ -370,7 +357,7 @@ export function DocsPage() {
               className="h-8"
               onClick={() => setCurrentFolderId(folder.id)}
             >
-              {folder.icon} {folder.title}
+              {folder.icon} {folder.name}
             </Button>
           </div>
         ))}
@@ -399,8 +386,12 @@ export function DocsPage() {
         </Tabs>
       </div>
 
-      {/* Content */}
-      {filteredDocuments.length === 0 ? (
+      {/* Loading */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : items.length === 0 ? (
         <Card className="card-3d">
           <CardContent className="py-12 text-center">
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -422,7 +413,7 @@ export function DocsPage() {
         </Card>
       ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredDocuments.map((item) => (
+          {items.map((item) => (
             <Card
               key={item.id}
               className="card-3d cursor-pointer hover:border-primary/50 transition-colors group"
@@ -448,28 +439,24 @@ export function DocsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleFavorite(item.id);
-                        }}
-                      >
-                        {item.isFavorite ? (
-                          <>
-                            <StarOff className="w-4 h-4 mr-2" />
-                            Remover dos favoritos
-                          </>
-                        ) : (
-                          <>
-                            <Star className="w-4 h-4 mr-2" />
-                            Adicionar aos favoritos
-                          </>
-                        )}
-                      </DropdownMenuItem>
                       {item.type === "document" && (
-                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(item.id, item.isFavorite);
+                          }}
+                        >
+                          {item.isFavorite ? (
+                            <>
+                              <StarOff className="w-4 h-4 mr-2" />
+                              Remover dos favoritos
+                            </>
+                          ) : (
+                            <>
+                              <Star className="w-4 h-4 mr-2" />
+                              Adicionar aos favoritos
+                            </>
+                          )}
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
@@ -481,7 +468,7 @@ export function DocsPage() {
                         className="text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(item.id);
+                          handleDelete(item.id, item.type);
                         }}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -498,7 +485,7 @@ export function DocsPage() {
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
                   )}
                 </div>
-                {item.type === "document" && item.excerpt && (
+                {item.excerpt && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                     {item.excerpt}
                   </p>
@@ -513,60 +500,54 @@ export function DocsPage() {
         </div>
       ) : (
         <Card className="card-3d">
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {filteredDocuments.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer group"
-                  onClick={() => handleOpenItem(item)}
-                >
-                  <div className="text-2xl">
-                    {item.type === "folder" ? (
-                      <Folder className="w-6 h-6 text-primary" />
-                    ) : (
-                      <span>{item.icon || "📄"}</span>
+          <div className="divide-y">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 p-4 hover:bg-accent/50 cursor-pointer transition-colors group"
+                onClick={() => handleOpenItem(item)}
+              >
+                <div className="text-2xl">
+                  {item.type === "folder" ? (
+                    <FolderOpen className="w-6 h-6 text-primary" />
+                  ) : (
+                    <span>{item.icon || "📄"}</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-foreground truncate">
+                      {item.title}
+                    </h3>
+                    {item.isFavorite && (
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-foreground truncate">
-                        {item.title}
-                      </h3>
-                      {item.isFavorite && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {item.type === "folder" ? "Pasta" : "Documento"}
-                      </Badge>
-                    </div>
-                    {item.type === "document" && item.excerpt && (
-                      <p className="text-sm text-muted-foreground truncate">
-                        {item.excerpt}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatDate(item.updatedAt)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {item.createdBy}
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                      >
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                  {item.excerpt && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      {item.excerpt}
+                    </p>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {formatDate(item.updatedAt)}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {item.type === "document" && (
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleFavorite(item.id);
+                          handleToggleFavorite(item.id, item.isFavorite);
                         }}
                       >
                         {item.isFavorite ? (
@@ -581,22 +562,27 @@ export function DocsPage() {
                           </>
                         )}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(item.id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+                    )}
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Duplicar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.id, item.type);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
     </motion.div>

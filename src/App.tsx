@@ -31,6 +31,7 @@ import {
   InvoicesSettingsPage,
   WebhooksSettingsPage,
   ApiKeysSettingsPage,
+  OrganizationStoragePage,
 } from "./pages/settings";
 
 // Profile Pages
@@ -133,6 +134,7 @@ const App = () => (
               <Route path="/settings/webhooks" element={<WebhooksSettingsPage />} />
               <Route path="/settings/api-keys" element={<ApiKeysSettingsPage />} />
               <Route path="/settings/preferences" element={<PlaceholderPage title="Preferências" description="Configurações de localização e aparência." />} />
+              <Route path="/settings/storage" element={<OrganizationStoragePage />} />
 
               {/* =====================================
                   PERFIL DO USUÁRIO

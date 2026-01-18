@@ -9,3 +9,4 @@ export { SubscriptionSettingsPage } from "./SubscriptionSettingsPage";
 export { InvoicesSettingsPage } from "./InvoicesSettingsPage";
 export { WebhooksSettingsPage } from "./WebhooksSettingsPage";
 export { ApiKeysSettingsPage } from "./ApiKeysSettingsPage";
+export { OrganizationStoragePage } from "./OrganizationStoragePage";
