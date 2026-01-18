@@ -1,3 +1,8 @@
 export { default as PlansAdminPage } from "./PlansAdminPage";
 export { default as LandingSettingsAdminPage } from "./LandingSettingsAdminPage";
 export { StorageAdminPage } from "./StorageAdminPage";
+export { default as AdminDashboardPage } from "./AdminDashboardPage";
+export { default as AdminOrganizationsPage } from "./AdminOrganizationsPage";
+export { default as AdminOrganizationDetailPage } from "./AdminOrganizationDetailPage";
+export { default as AdminSettingsPage } from "./AdminSettingsPage";
+export { default as AdminLogsPage } from "./AdminLogsPage";
