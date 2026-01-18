@@ -10,11 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { resetPasswordSchema, ResetPasswordFormData } from "@/lib/validations/auth";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecoveryReady, setIsRecoveryReady] = useState(false);
   const { updatePassword, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -27,12 +29,53 @@ export default function ResetPasswordPage() {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  // Verify that user has a valid recovery session
+  // Garantir que a sessão de recovery seja criada a partir do link do email
   useEffect(() => {
-    if (!session) {
-      // User needs to come from email link
-    }
-  }, [session]);
+    const ensureRecoverySession = async () => {
+      // Se já existe sessão, ok.
+      if (session) {
+        setIsRecoveryReady(true);
+        return;
+      }
+
+      // Alguns projetos usam PKCE e chegam com ?code=...
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Link inválido",
+            description: "Seu link de redefinição expirou ou já foi usado. Solicite um novo.",
+          });
+          navigate("/auth/forgot-password", { replace: true });
+          return;
+        }
+
+        // Remove o code da URL (evita reprocessar ao recarregar)
+        url.searchParams.delete("code");
+        window.history.replaceState({}, "", url.toString());
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast({
+          variant: "destructive",
+          title: "Sessão ausente",
+          description: "Abra novamente o link do email ou solicite uma nova redefinição.",
+        });
+        navigate("/auth/forgot-password", { replace: true });
+        return;
+      }
+
+      setIsRecoveryReady(true);
+    };
+
+    void ensureRecoverySession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, toast, session]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
@@ -128,8 +171,8 @@ export default function ResetPasswordPage() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" className="w-full" disabled={isLoading || !isRecoveryReady}>
+            {(isLoading || !isRecoveryReady) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Definir nova senha
           </Button>
         </form>
